@@ -137,7 +137,7 @@ flutter build appbundle
 ## ⬇️ Direct Download
 
 <p align="center">
-  <a href="https://github.com/yourusername/signalaid_flutter/releases/download/v1.0.0/app-release.apk">
+  <a href="https://github.com/NavDevs/Signal-Aid/releases/download/v1.0.0/app-release.apk">
     <img src="https://img.shields.io/badge/Download-APK%20(45.8MB)-brightgreen?logo=android" alt="Download APK" width="200">
   </a>
 </p>
