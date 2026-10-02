@@ -639,11 +639,9 @@ class TripsProvider with ChangeNotifier {
     socket.on('dispatch.created', (data) {
       if (data is! Map) return;
       final job = Map<String, dynamic>.from(data);
-      final vt = _driver?.vehicleType;
-      if (vt != null && vt.isNotEmpty) {
-        final need = (job['required_vehicle'] ?? '').toString();
-        if (need.isNotEmpty && need != vt) return;
-      }
+      final vt = _driver?.vehicleType?.toLowerCase();
+      final need = (job['required_vehicle'] ?? '').toString().toLowerCase();
+      if (vt != null && vt.isNotEmpty && need.isNotEmpty && need != vt) return;
       if (_activeDispatches.any((d) => d['id'] == job['id'])) return;
       _activeDispatches.insert(0, job);
       notifyListeners();
@@ -651,6 +649,13 @@ class TripsProvider with ChangeNotifier {
 
     // Remove dispatch from list if another driver accepts it
     socket.on('dispatch.accepted', (data) {
+      if (data is! Map) return;
+      _activeDispatches.removeWhere((d) => d['id'] == data['dispatchId']);
+      notifyListeners();
+    });
+
+    // Remove dispatch when cancelled (admin action, incident expired, etc.)
+    socket.on('dispatch.cancelled', (data) {
       if (data is! Map) return;
       _activeDispatches.removeWhere((d) => d['id'] == data['dispatchId']);
       notifyListeners();
@@ -868,9 +873,9 @@ class TripsProvider with ChangeNotifier {
         var list =
             List<Map<String, dynamic>>.from(data.map((e) => Map<String, dynamic>.from(e)));
         // Client-side eligibility: only my vehicle type (ambulance sees ambulance, fire sees fire).
-        final vt = _driver?.vehicleType;
+        final vt = _driver?.vehicleType?.toLowerCase();
         if (vt != null && vt.isNotEmpty) {
-          list = list.where((d) => (d['required_vehicle']?.toString() ?? '') == vt).toList();
+          list = list.where((d) => (d['required_vehicle']?.toString() ?? '').toLowerCase() == vt).toList();
         }
         _activeDispatches = list;
         notifyListeners();

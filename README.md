@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/badge/Dart-3.6-blue?logo=dart" alt="Dart">
   <img src="https://img.shields.io/badge/Android-API%2021+-green?logo=android" alt="Android">
   <img src="https://img.shields.io/badge/License-MIT-yellow" alt="License">
-  <img src="https://img.shields.io/badge/Version-1.0.10-orange" alt="Version">
+  <img src="https://img.shields.io/badge/Version-1.0.11-orange" alt="Version">
 </p>
 
 ## 📱 Description
@@ -166,7 +166,7 @@ flutter build appbundle
 ## ⬇️ Direct Download
 
 <p align="center">
-  <a href="https://github.com/NavDevs/Signal-Aid/releases/download/v1.0.10/SignalAid-v1.0.10-final.apk">
+  <a href="https://github.com/NavDevs/Signal-Aid/releases/download/v1.0.11/SignalAid-v1.0.11-final.apk">
     <img src="https://img.shields.io/badge/Download-Latest%20APK-brightgreen?logo=android" alt="Download APK" width="200">
   </a>
 </p>
