@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -15,13 +15,13 @@ import '../widgets/card.dart';
 import '../widgets/primary_button.dart';
 import '../widgets/stat.dart';
 
-/// S6 Ã¢â‚¬â€ Active response.
+/// S6 — Active response.
 ///
 /// Everything on this screen is real: the driver position comes from the device
 /// GPS, the incident position comes from the backend dispatch, and the route
 /// (distance, ETA and the drawn path) comes from the backend's routing provider.
-/// Nothing here is estimated or invented Ã¢â‚¬â€ when a value is unknown it renders as
-/// `Ã¢â‚¬â€` instead of a plausible-looking number.
+/// Nothing here is estimated or invented — when a value is unknown it renders as
+/// `—` instead of a plausible-looking number.
 class ResponseScreen extends StatefulWidget {
   const ResponseScreen({super.key});
 
@@ -105,15 +105,15 @@ class _ResponseScreenState extends State<ResponseScreen> {
     final startPos = _latLngFrom(args?['startLat'], args?['startLon']);
     if (startPos != null) {
       _journeyStart = startPos;
-      // Pre-fill driver position so routing begins IMMEDIATELY instead of waiting for the first GPS tick.
-      _driver = startPos;
+      // Pre-fill driver position from dispatch accept so routing fires immediately.
+      _driver ??= startPos;
     }
 
     _status = (args?['status'] as String?) ?? 'en_route';
     _arrived = _status == 'arrived';
     if (mounted) setState(() {});
-    
-    // Kick off route fetch immediately if we have a position
+
+    // Kick off route calculation immediately if we have both positions
     if (_driver != null && _incident != null) {
       _fetchRoute();
       _maybeReturnRoute();
@@ -288,7 +288,7 @@ class _ResponseScreenState extends State<ResponseScreen> {
     }
   }
 
-  /// Ambulance return journey: incident Ã¢â€ â€™ original start location.
+  /// Ambulance return journey: incident → original start location.
   /// Fire vehicles never see this section.
   Future<void> _fetchReturnRoute() async {
     final from = _incident;
@@ -336,7 +336,7 @@ class _ResponseScreenState extends State<ResponseScreen> {
     await _openMaps(destination: to);
   }
 
-  /// Way-back leg for ambulances: current position (scene) Ã¢â€ â€™ journey start.
+  /// Way-back leg for ambulances: current position (scene) → journey start.
   Future<void> _navigateBack() async {
     final to = _journeyStart;
     if (to == null) {
@@ -350,7 +350,7 @@ class _ResponseScreenState extends State<ResponseScreen> {
   ///
   /// Tries, in order: Google Maps navigation intent, the universal Maps
   /// directions URL, then a plain geo: intent. `canLaunchUrl` is deliberately
-  /// NOT used as a gate Ã¢â‚¬â€ on Android 11+ it returns false whenever the target
+  /// NOT used as a gate — on Android 11+ it returns false whenever the target
   /// app is outside the package-visibility queries, even though the launch
   /// itself would have worked, which is exactly the "Could not open
   /// navigation" failure drivers were seeing.
@@ -362,9 +362,9 @@ class _ResponseScreenState extends State<ResponseScreen> {
         : '';
 
     final candidates = <Uri>[
-      // Straight into Google Maps turn-by-turn (current position Ã¢â€ â€™ destination).
+      // Straight into Google Maps turn-by-turn (current position → destination).
       Uri.parse('google.navigation:q=$dlat,$dlon'),
-      // Universal directions URL Ã¢â‚¬â€ opens Maps when installed, browser otherwise.
+      // Universal directions URL — opens Maps when installed, browser otherwise.
       Uri.parse(
           'https://www.google.com/maps/dir/?api=1&destination=$dlat,$dlon$origin&travelmode=driving'),
       // Bare geo: intent as the last resort.
@@ -379,7 +379,7 @@ class _ResponseScreenState extends State<ResponseScreen> {
         debugPrint('[Response] Navigation launch failed ($uri): $e');
       }
     }
-    _snack('Could not open navigation Ã¢â‚¬â€ please install Google Maps.');
+    _snack('Could not open navigation — please install Google Maps.');
   }
 
   /// Fetch the ambulance return leg once both anchors are known.
@@ -466,7 +466,7 @@ class _ResponseScreenState extends State<ResponseScreen> {
     super.dispose();
   }
 
-  // Ã¢â€â‚¬Ã¢â€â‚¬ Map Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+  // ── Map ───────────────────────────────────────────────────────────────────
 
   Widget _buildMap() {
     final center = _incident ?? _driver ?? const LatLng(20.5937, 78.9629);
@@ -524,14 +524,14 @@ class _ResponseScreenState extends State<ResponseScreen> {
                         point: _incident!,
                         width: 46,
                         height: 46,
-                        child: _pin('Ã°Å¸Å¡Â¨', AppColors.primary),
+                        child: _pin('🚨', AppColors.primary),
                       ),
                     if (_driver != null)
                       Marker(
                         point: _driver!,
                         width: 46,
                         height: 46,
-                        child: _pin('Ã°Å¸Å¡â€˜', AppColors.success),
+                        child: _pin('🚑', AppColors.success),
                       ),
                   ],
                 ),
@@ -553,7 +553,7 @@ class _ResponseScreenState extends State<ResponseScreen> {
                         setState(() => _followDriver = true);
                         _mapController.move(_driver!, 15);
                       } else {
-                        _snack('Waiting for your GPS positionÃ¢â‚¬Â¦');
+                        _snack('Waiting for your GPS position…');
                       }
                     },
                   ),
@@ -594,7 +594,7 @@ class _ResponseScreenState extends State<ResponseScreen> {
                         const Icon(Icons.error_outline, size: 14, color: AppColors.warning),
                       const SizedBox(width: 8),
                       Text(
-                        _loadingRoute ? 'Calculating routeÃ¢â‚¬Â¦' : (_routeError ?? ''),
+                        _loadingRoute ? 'Calculating route…' : (_routeError ?? ''),
                         style: const TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
@@ -654,7 +654,7 @@ class _ResponseScreenState extends State<ResponseScreen> {
     );
   }
 
-  // Ã¢â€â‚¬Ã¢â€â‚¬ Small pieces Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+  // ── Small pieces ──────────────────────────────────────────────────────────
 
   Widget _sectionLabel(String text) => Text(
         text,
@@ -702,7 +702,7 @@ class _ResponseScreenState extends State<ResponseScreen> {
     );
   }
 
-  /// EN_ROUTE Ã¢â€ â€™ ARRIVED Ã¢â€ â€™ RESOLVED, as confirmed by the backend.
+  /// EN_ROUTE → ARRIVED → RESOLVED, as confirmed by the backend.
   Widget _buildStatusStepper() {
     final steps = const ['EN_ROUTE', 'ARRIVED', 'RESOLVED'];
     int current;
@@ -793,7 +793,7 @@ class _ResponseScreenState extends State<ResponseScreen> {
                             ),
                           ),
                           Text(
-                            'Unit ${provider.driver?.vehicleNo ?? 'Ã¢â‚¬â€'} Ã‚Â· ${provider.driver?.driverId ?? ''}',
+                            'Unit ${provider.driver?.vehicleNo ?? '—'} · ${provider.driver?.driverId ?? ''}',
                             style: const TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w500,
@@ -819,7 +819,7 @@ class _ResponseScreenState extends State<ResponseScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Ã¢â€â‚¬Ã¢â€â‚¬ Route map: driver Ã¢â€ â€™ incident, on real roads Ã¢â€â‚¬Ã¢â€â‚¬
+                      // ── Route map: driver → incident, on real roads ──
                       AppCard(
                         padding: EdgeInsets.zero,
                         child: _buildMap(),
@@ -827,7 +827,7 @@ class _ResponseScreenState extends State<ResponseScreen> {
 
                       const SizedBox(height: 16),
 
-                      // Ã¢â€â‚¬Ã¢â€â‚¬ Real route numbers from the routing provider Ã¢â€â‚¬Ã¢â€â‚¬
+                      // ── Real route numbers from the routing provider ──
                       AppCard(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -865,11 +865,11 @@ class _ResponseScreenState extends State<ResponseScreen> {
                                   label: 'Distance',
                                   value: _routeDistanceKm != null
                                       ? '${_routeDistanceKm!.toStringAsFixed(2)} km'
-                                      : 'Ã¢â‚¬â€',
+                                      : '—',
                                 ),
                                 Stat(
                                   label: 'ETA',
-                                  value: _routeDurationMin != null ? '$_routeDurationMin min' : 'Ã¢â‚¬â€',
+                                  value: _routeDurationMin != null ? '$_routeDurationMin min' : '—',
                                 ),
                                 Stat(
                                   label: 'GPS',
@@ -895,16 +895,16 @@ class _ResponseScreenState extends State<ResponseScreen> {
                             const SizedBox(height: 4),
                             Text(
                               _incident != null
-                                  ? 'Ã°Å¸Å¡Â¨ Incident: ${_incident!.latitude.toStringAsFixed(5)}, ${_incident!.longitude.toStringAsFixed(5)}'
-                                  : 'Ã°Å¸Å¡Â¨ Incident location unavailable',
+                                  ? '🚨 Incident: ${_incident!.latitude.toStringAsFixed(5)}, ${_incident!.longitude.toStringAsFixed(5)}'
+                                  : '🚨 Incident location unavailable',
                               style: const TextStyle(fontSize: 12, color: AppColors.mutedForeground),
                             ),
                             Text(
                               _driver != null
-                                  ? 'Ã°Å¸Å¡â€˜ You: ${_driver!.latitude.toStringAsFixed(5)}, ${_driver!.longitude.toStringAsFixed(5)}${_usingLastKnown ? ' (last known)' : ''}'
+                                  ? '🚑 You: ${_driver!.latitude.toStringAsFixed(5)}, ${_driver!.longitude.toStringAsFixed(5)}${_usingLastKnown ? ' (last known)' : ''}'
                                   : _locationDenied
-                                      ? 'Ã°Å¸Å¡â€˜ Location permission denied Ã¢â‚¬â€ enable it in Profile'
-                                      : 'Ã°Å¸Å¡â€˜ Acquiring your GPSÃ¢â‚¬Â¦',
+                                      ? '🚑 Location permission denied — enable it in Profile'
+                                      : '🚑 Acquiring your GPS…',
                               style: const TextStyle(fontSize: 12, color: AppColors.mutedForeground),
                             ),
                             const SizedBox(height: 14),
@@ -920,21 +920,21 @@ class _ResponseScreenState extends State<ResponseScreen> {
 
                       const SizedBox(height: 16),
 
-                      // Ã¢â€â‚¬Ã¢â€â‚¬ Ambulance return journey (fire vehicles skip this).
-                      // Visible for the whole trip Ã¢â‚¬â€ drivers plan the way back
-                      // before they even reach the scene. Ã¢â€â‚¬Ã¢â€â‚¬
+                      // ── Ambulance return journey (fire vehicles skip this).
+                      // Visible for the whole trip — drivers plan the way back
+                      // before they even reach the scene. ──
                       if (provider.driver?.vehicleType == null ||
                           provider.driver?.vehicleType == 'ambulance')
                         AppCard(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _sectionLabel('WAY BACK Ã¢â‚¬â€ START POINT (HOSPITAL)'),
+                              _sectionLabel('WAY BACK — START POINT (HOSPITAL)'),
                               const SizedBox(height: 8),
                               Text(
                                 _arrived
-                                    ? 'Patient picked up Ã¢â‚¬â€ head back'
-                                    : 'Return leg: scene Ã¢â€ â€™ hospital',
+                                    ? 'Patient picked up — head back'
+                                    : 'Return leg: scene → hospital',
                                 style: const TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w800,
@@ -943,7 +943,7 @@ class _ResponseScreenState extends State<ResponseScreen> {
                               ),
                               const SizedBox(height: 6),
                               const Text(
-                                'Incident location Ã¢â€ â€œ Starting point (hospital)',
+                                'Incident location ↓ Starting point (hospital)',
                                 style: TextStyle(
                                     fontSize: 12,
                                     color: AppColors.mutedForeground,
@@ -957,13 +957,13 @@ class _ResponseScreenState extends State<ResponseScreen> {
                                     label: 'Return distance',
                                     value: _returnDistanceKm != null
                                         ? '${_returnDistanceKm!.toStringAsFixed(2)} km'
-                                        : (_loadingReturn ? 'Ã¢â‚¬Â¦' : 'Ã¢â‚¬â€'),
+                                        : (_loadingReturn ? '…' : '—'),
                                   ),
                                   Stat(
                                     label: 'Return ETA',
                                     value: _returnDurationMin != null
                                         ? '${_returnDurationMin!} min'
-                                        : (_loadingReturn ? 'Ã¢â‚¬Â¦' : 'Ã¢â‚¬â€'),
+                                        : (_loadingReturn ? '…' : '—'),
                                   ),
                                 ],
                               ),
@@ -991,7 +991,7 @@ class _ResponseScreenState extends State<ResponseScreen> {
                         )
                       else
                         PrimaryButton(
-                          label: _completing ? 'CompletingÃ¢â‚¬Â¦' : 'COMPLETE RESPONSE',
+                          label: _completing ? 'Completing…' : 'COMPLETE RESPONSE',
                           onPressed: _completeResponse,
                           disabled: _completing,
                           variant: ButtonVariant.primary,

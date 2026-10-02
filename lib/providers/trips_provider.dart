@@ -78,7 +78,7 @@ class TripsProvider with ChangeNotifier {
   /// True when we restored a cached session without the backend confirming it.
   bool get offline => _offline;
 
-  /// One-shot message to show on the sign-in screen (invalidated session, revocationâ€¦).
+  /// One-shot message to show on the sign-in screen (invalidated session, revocation…).
   String? get sessionNotice => _sessionNotice;
 
   String? consumeNotice() {
