@@ -177,18 +177,6 @@ flutter build appbundle
 
 ---
 
-## 📸 Screenshots
-
-<p align="center">
-  <em>Screenshots coming soon...</em>
-</p>
-
-| Login Screen | Dispatch Screen | Response Screen | History Screen |
-|:------------:|:---------------:|:---------------:|:--------------:|
-| 🖼️ | 🖼️ | 🖼️ | 🖼️ |
-
----
-
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
