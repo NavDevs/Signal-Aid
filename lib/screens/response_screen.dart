@@ -154,6 +154,7 @@ class _ResponseScreenState extends State<ResponseScreen> {
           // Remember where the journey started for the ambulance return leg.
           _journeyStart ??= _driver;
         });
+        _maybeReturnRoute();
         // Follow the device like a navigation app (unless the driver panned away).
         if (moved && _followDriver && mounted) {
           try {
@@ -195,6 +196,7 @@ class _ResponseScreenState extends State<ResponseScreen> {
       });
       _fitRoute();
       _fetchRoute();
+      _maybeReturnRoute();
     } catch (e) {
       debugPrint('[Response] Last-known position error: $e');
     }
@@ -321,14 +323,66 @@ class _ResponseScreenState extends State<ResponseScreen> {
       _snack('Incident location is not available yet.');
       return;
     }
-    final url = Uri.parse(
-      'https://www.google.com/maps/dir/?api=1&destination=${to.latitude},${to.longitude}&travelmode=driving',
-    );
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
-    } else {
-      _snack('Could not open navigation.');
+    await _openMaps(destination: to);
+  }
+
+  /// Way-back leg for ambulances: current position (scene) → journey start.
+  Future<void> _navigateBack() async {
+    final to = _journeyStart;
+    if (to == null) {
+      _snack('Starting point is not known yet.');
+      return;
     }
+    await _openMaps(destination: to);
+  }
+
+  /// Open driving directions in a real navigation app.
+  ///
+  /// Tries, in order: Google Maps navigation intent, the universal Maps
+  /// directions URL, then a plain geo: intent. `canLaunchUrl` is deliberately
+  /// NOT used as a gate — on Android 11+ it returns false whenever the target
+  /// app is outside the package-visibility queries, even though the launch
+  /// itself would have worked, which is exactly the "Could not open
+  /// navigation" failure drivers were seeing.
+  Future<void> _openMaps({required LatLng destination}) async {
+    final dlat = destination.latitude.toStringAsFixed(6);
+    final dlon = destination.longitude.toStringAsFixed(6);
+    final origin = _driver != null
+        ? '&origin=${_driver!.latitude.toStringAsFixed(6)},${_driver!.longitude.toStringAsFixed(6)}'
+        : '';
+
+    final candidates = <Uri>[
+      // Straight into Google Maps turn-by-turn (current position → destination).
+      Uri.parse('google.navigation:q=$dlat,$dlon'),
+      // Universal directions URL — opens Maps when installed, browser otherwise.
+      Uri.parse(
+          'https://www.google.com/maps/dir/?api=1&destination=$dlat,$dlon$origin&travelmode=driving'),
+      // Bare geo: intent as the last resort.
+      Uri.parse('geo:$dlat,$dlon?q=$dlat,$dlon'),
+    ];
+
+    for (final uri in candidates) {
+      try {
+        final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+        if (ok) return;
+      } catch (e) {
+        debugPrint('[Response] Navigation launch failed ($uri): $e');
+      }
+    }
+    _snack('Could not open navigation — please install Google Maps.');
+  }
+
+  /// Fetch the ambulance return leg once both anchors are known.
+  /// Guards keep it to exactly one network call per trip.
+  void _maybeReturnRoute() {
+    if (_incident == null ||
+        _journeyStart == null ||
+        _returnDistanceKm != null ||
+        _loadingReturn) {
+      return;
+    }
+    final vt = Provider.of<TripsProvider>(context, listen: false).driver?.vehicleType;
+    if (vt == null || vt == 'ambulance') _fetchReturnRoute();
   }
 
   void _snack(String message) {
@@ -856,19 +910,22 @@ class _ResponseScreenState extends State<ResponseScreen> {
 
                       const SizedBox(height: 16),
 
-                      // ── Ambulance return journey (fire vehicles skip this) ──
-                      if (_arrived &&
-                          (provider.driver?.vehicleType == null ||
-                              provider.driver?.vehicleType == 'ambulance'))
+                      // ── Ambulance return journey (fire vehicles skip this).
+                      // Visible for the whole trip — drivers plan the way back
+                      // before they even reach the scene. ──
+                      if (provider.driver?.vehicleType == null ||
+                          provider.driver?.vehicleType == 'ambulance')
                         AppCard(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               _sectionLabel('WAY BACK — START POINT (HOSPITAL)'),
                               const SizedBox(height: 8),
-                              const Text(
-                                'Patient picked up — head back',
-                                style: TextStyle(
+                              Text(
+                                _arrived
+                                    ? 'Patient picked up — head back'
+                                    : 'Return leg: scene → hospital',
+                                style: const TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w800,
                                   color: AppColors.success,
@@ -876,7 +933,7 @@ class _ResponseScreenState extends State<ResponseScreen> {
                               ),
                               const SizedBox(height: 6),
                               const Text(
-                                'Accident Location ↓ Starting point (hospital)',
+                                'Incident location ↓ Starting point (hospital)',
                                 style: TextStyle(
                                     fontSize: 12,
                                     color: AppColors.mutedForeground,
@@ -900,13 +957,19 @@ class _ResponseScreenState extends State<ResponseScreen> {
                                   ),
                                 ],
                               ),
+                              const SizedBox(height: 12),
+                              PrimaryButton(
+                                label: 'NAVIGATE BACK',
+                                onPressed: _navigateBack,
+                                variant: ButtonVariant.success,
+                                icon: Icons.alt_route,
+                              ),
                             ],
                           ),
                         ),
 
-                      if (_arrived &&
-                          (provider.driver?.vehicleType == null ||
-                              provider.driver?.vehicleType == 'ambulance'))
+                      if (provider.driver?.vehicleType == null ||
+                          provider.driver?.vehicleType == 'ambulance')
                         const SizedBox(height: 16),
 
                       if (!_arrived)
