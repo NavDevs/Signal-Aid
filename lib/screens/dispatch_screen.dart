@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
@@ -137,6 +138,90 @@ class _DispatchScreenState extends State<DispatchScreen> {
     return h > 0 ? '${h}h ${m.toString().padLeft(2, '0')}m left' : '${m}m left';
   }
 
+  /// Android back on the duty dashboard = leaving the app. A driver who is
+  /// still AVAILABLE would silently keep receiving dispatches while the app
+  /// is closed, so they must switch OFFLINE first — the exit prompt makes
+  /// that ask. BUSY cannot be changed mid-emergency (the response has to be
+  /// finished first), and OFFLINE exits directly.
+  Future<void> _confirmExit() async {
+    final provider = context.read<TripsProvider>();
+    final availability =
+        (provider.driver?.availability ?? 'OFFLINE').toUpperCase();
+
+    if (availability == 'OFFLINE') {
+      SystemNavigator.pop();
+      return;
+    }
+
+    if (!mounted) return;
+
+    if (availability == 'BUSY') {
+      await showDialog<void>(
+        context: context,
+        builder: (context) => AlertDialog(
+          backgroundColor: AppColors.card,
+          title: const Text(
+            'Finish the emergency first',
+            style: TextStyle(color: AppColors.foreground),
+          ),
+          content: const Text(
+            'You are on an active response. Complete it with COMPLETE RESPONSE before leaving the app — availability cannot be turned off mid-emergency.',
+            style: TextStyle(color: AppColors.mutedForeground),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK',
+                  style: TextStyle(color: AppColors.foreground)),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    // AVAILABLE — the case that causes conflicts: ask to go offline first.
+    final goOffline = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.card,
+        title: const Text(
+          'Turn off availability before exiting?',
+          style: TextStyle(color: AppColors.foreground),
+        ),
+        content: const Text(
+          'You are still marked AVAILABLE. New dispatches would keep coming to this device while the app is closed. Go OFFLINE so there are no conflicts?',
+          style: TextStyle(color: AppColors.mutedForeground),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Stay',
+                style: TextStyle(color: AppColors.mutedForeground)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Go offline & exit',
+                style: TextStyle(color: AppColors.primary)),
+          ),
+        ],
+      ),
+    );
+    if (goOffline != true || !mounted) return;
+
+    final error = await provider.setAvailability('OFFLINE');
+    if (!mounted) return;
+    if (error != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text(
+                'Could not go offline: $error — you are still in the app.')),
+      );
+      return;
+    }
+    SystemNavigator.pop();
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<TripsProvider>(context);
@@ -160,7 +245,13 @@ class _DispatchScreenState extends State<DispatchScreen> {
       if ((provider.driver?.organization ?? '').isNotEmpty) provider.driver!.organization,
     ].join('  ·  ');
 
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        _confirmExit();
+      },
+      child: Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: Column(
@@ -535,6 +626,7 @@ class _DispatchScreenState extends State<DispatchScreen> {
             ),
           ],
         ),
+      ),
       ),
     );
   }
