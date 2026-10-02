@@ -169,11 +169,7 @@ class _DispatchScreenState extends State<DispatchScreen> {
     ].join('  ·  ');
 
     return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) return;
-        _confirmExit();
-      },
+      canPop: true,
       child: Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
