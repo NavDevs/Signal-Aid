@@ -644,20 +644,31 @@ class TripsProvider with ChangeNotifier {
       if (vt != null && vt.isNotEmpty && need.isNotEmpty && need != vt) return;
       if (_activeDispatches.any((d) => d['id'] == job['id'])) return;
       _activeDispatches.insert(0, job);
+      // Remember it arrived while fetch N (or later) was in flight so a stale
+      // fetch response cannot wipe it a moment later.
+      _socketAddSeq[job['id']] = _dispatchFetchSeq;
       notifyListeners();
     });
 
     // Remove dispatch from list if another driver accepts it
     socket.on('dispatch.accepted', (data) {
       if (data is! Map) return;
-      _activeDispatches.removeWhere((d) => d['id'] == data['dispatchId']);
+      final id = data['dispatchId']?.toString();
+      if (id == null) return;
+      _activeDispatches.removeWhere((d) => d['id'] == id);
+      _socketAddSeq.remove(id);
+      _goneDuringFetch.add(id);
       notifyListeners();
     });
 
     // Remove dispatch when cancelled (admin action, incident expired, etc.)
     socket.on('dispatch.cancelled', (data) {
       if (data is! Map) return;
-      _activeDispatches.removeWhere((d) => d['id'] == data['dispatchId']);
+      final id = data['dispatchId']?.toString();
+      if (id == null) return;
+      _activeDispatches.removeWhere((d) => d['id'] == id);
+      _socketAddSeq.remove(id);
+      _goneDuringFetch.add(id);
       notifyListeners();
     });
 
@@ -852,9 +863,26 @@ class TripsProvider with ChangeNotifier {
     return null;
   }
 
+  /// Monotonic counter so a slow, stale fetch can never overwrite a newer one.
+  int _dispatchFetchSeq = 0;
+
+  /// Jobs the socket delivered while a fetch was in flight (id -> fetch seq),
+  /// so the stale response cannot wipe them.
+  final Map<String, int> _socketAddSeq = {};
+
+  /// Jobs removed (accepted/cancelled) while a fetch was in flight, so a stale
+  /// response cannot resurrect them.
+  final Set<String> _goneDuringFetch = {};
+
   /// Load available dispatches; filters by my vehicle type + nearby when possible.
+  ///
+  /// The radius query can come back empty when GPS is missing or far from the
+  /// incident (demo locations, emulator, laptop). An empty radius result must
+  /// never hide a live emergency: fall back to the unfiltered list before
+  /// replacing what the driver is seeing.
   Future<void> fetchDispatches({double? lat, double? lon}) async {
     if (_driver == null) return;
+    final seq = ++_dispatchFetchSeq;
     try {
       Uri uri = Uri.parse('$baseUrl/api/dispatches');
       if (lat != null && lon != null) {
@@ -866,22 +894,62 @@ class TripsProvider with ChangeNotifier {
           'radiusKm': '30',
         });
       }
-      final response = await http.get(uri, headers: _authHeaders()).timeout(_requestTimeout);
-      _guard(response);
-      if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        var list =
-            List<Map<String, dynamic>>.from(data.map((e) => Map<String, dynamic>.from(e)));
-        // Client-side eligibility: only my vehicle type (ambulance sees ambulance, fire sees fire).
-        final vt = _driver?.vehicleType?.toLowerCase();
-        if (vt != null && vt.isNotEmpty) {
-          list = list.where((d) => (d['required_vehicle']?.toString() ?? '').toLowerCase() == vt).toList();
+      var list = await _fetchDispatchList(uri);
+
+      // Radius/position filtered everything out: ask the server for every live
+      // dispatch instead, so a job is never wiped just because GPS was wrong.
+      if (list.isEmpty && uri.path.endsWith('/nearby')) {
+        final fallback = await _fetchDispatchList(Uri.parse('$baseUrl/api/dispatches'));
+        if (fallback.isNotEmpty) {
+          debugPrint('[Dispatch] nearby empty -> fallback returned ${fallback.length}');
+          list = fallback;
         }
-        _activeDispatches = list;
-        notifyListeners();
       }
+
+      if (seq != _dispatchFetchSeq) return; // a newer fetch already won
+
+      // Never resurrect a job the socket removed while this fetch was in flight.
+      final respIds = list.map((d) => d['id'].toString()).toSet();
+      list = list.where((d) => !_goneDuringFetch.contains(d['id'])).toList();
+      // Server confirms those ids are gone: future responses won't include them.
+      _goneDuringFetch.removeWhere((id) => !respIds.contains(id));
+
+      // Keep jobs the socket delivered while this fetch was in flight (they
+      // were created after the request went out, so the response lacks them).
+      for (final entry in _socketAddSeq.entries.toList()) {
+        if (entry.value >= seq && !respIds.contains(entry.key)) {
+          final matches = _activeDispatches.where((d) => d['id'] == entry.key);
+          if (matches.isNotEmpty) list.insert(0, matches.first);
+        }
+      }
+      // Entries this response already covers (or that predate this fetch) are done.
+      _socketAddSeq.removeWhere((id, s) => s < seq || respIds.contains(id));
+
+      _activeDispatches = list;
+      notifyListeners();
     } catch (e) {
       debugPrint('Fetch dispatches error: $e');
+    }
+  }
+
+  /// GET [uri] and return the vehicle-type-filtered dispatch list (empty on error).
+  Future<List<Map<String, dynamic>>> _fetchDispatchList(Uri uri) async {
+    try {
+      final response = await http.get(uri, headers: _authHeaders()).timeout(_requestTimeout);
+      _guard(response);
+      if (response.statusCode != 200) return [];
+      final List<dynamic> data = json.decode(response.body);
+      var list =
+          List<Map<String, dynamic>>.from(data.map((e) => Map<String, dynamic>.from(e)));
+      // Client-side eligibility: only my vehicle type (ambulance sees ambulance, fire sees fire).
+      final vt = _driver?.vehicleType?.toLowerCase();
+      if (vt != null && vt.isNotEmpty) {
+        list = list.where((d) => (d['required_vehicle']?.toString() ?? '').toLowerCase() == vt).toList();
+      }
+      return list;
+    } catch (e) {
+      debugPrint('Fetch dispatches error: $e');
+      return [];
     }
   }
 
