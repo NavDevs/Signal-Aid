@@ -6,8 +6,24 @@ import '../utils/app_colors.dart';
 import '../widgets/card.dart';
 import '../widgets/stat.dart';
 
-class HistoryScreen extends StatelessWidget {
+class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
+
+  @override
+  State<HistoryScreen> createState() => _HistoryScreenState();
+}
+
+class _HistoryScreenState extends State<HistoryScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Trips are fetched at login, but the list must also be fresh when this
+    // screen is opened (e.g. boot was offline, or another device ran trips).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Provider.of<TripsProvider>(context, listen: false).fetchTrips();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -15,11 +31,10 @@ class HistoryScreen extends StatelessWidget {
     final trips = provider.trips;
 
     final summary = trips.isEmpty
-        ? {'avgTime': 0.0, 'totalPreempts': 0, 'avgConf': 0.0}
+        ? {'avgTime': 0.0, 'totalPreempts': 0}
         : {
             'avgTime': trips.map((t) => t.travelTime).reduce((a, b) => a + b) / trips.length,
             'totalPreempts': trips.map((t) => t.preemptions).reduce((a, b) => a + b),
-            'avgConf': trips.map((t) => t.confidence).reduce((a, b) => a + b) / trips.length,
           };
 
     return Scaffold(
@@ -105,11 +120,6 @@ class HistoryScreen extends StatelessWidget {
                             label: 'Preempts',
                             value: '${summary['totalPreempts']}',
                             color: AppColors.accent,
-                          ),
-                          Stat(
-                            label: 'Avg conf.',
-                            value: '${summary['avgConf']!.toStringAsFixed(0)}%',
-                            color: const Color(0xFF60A5FA),
                           ),
                         ],
                       ),
@@ -217,38 +227,6 @@ class _TripCard extends StatelessWidget {
                 label: 'Preempts',
                 value: '${trip.preemptions}',
                 color: AppColors.accent,
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Container(
-                height: 6,
-                decoration: BoxDecoration(
-                  color: AppColors.secondary,
-                  borderRadius: BorderRadius.circular(AppColors.radius),
-                ),
-                child: FractionallySizedBox(
-                  alignment: Alignment.centerLeft,
-                  widthFactor: trip.confidence / 100,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF60A5FA),
-                      borderRadius: BorderRadius.circular(AppColors.radius),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 6),
-              const Text(
-                'ML confidence',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.mutedForeground,
-                ),
               ),
             ],
           ),

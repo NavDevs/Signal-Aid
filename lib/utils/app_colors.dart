@@ -5,8 +5,13 @@ class AppColors {
   static const Color foreground = Color(0xFFF5F5F7);
   static const Color card = Color(0xFF161922);
   static const Color cardForeground = Color(0xFFF5F5F7);
+
+  // Emergency red drives interactive elements (buttons, links, active
+  // states); success keeps emerald and warnings keep amber.
   static const Color primary = Color(0xFFEF2B2B);
   static const Color primaryForeground = Color(0xFFFFFFFF);
+  static const Color primarySoft = Color(0xFFF87171); // legible accent on dark
+
   static const Color secondary = Color(0xFF1F2330);
   static const Color secondaryForeground = Color(0xFFE5E7EB);
   static const Color muted = Color(0xFF1A1D27);

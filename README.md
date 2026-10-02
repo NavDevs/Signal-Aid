@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/badge/Dart-3.6-blue?logo=dart" alt="Dart">
   <img src="https://img.shields.io/badge/Android-API%2021+-green?logo=android" alt="Android">
   <img src="https://img.shields.io/badge/License-MIT-yellow" alt="License">
-  <img src="https://img.shields.io/badge/Version-1.0.0-orange" alt="Version">
+  <img src="https://img.shields.io/badge/Version-1.0.7-orange" alt="Version">
 </p>
 
 ## 📱 Description
@@ -27,7 +27,10 @@ The app features real-time dispatch planning, criticality-based route optimizati
 | 🔐 **Driver Authentication** | Secure login with Driver ID and Vehicle Number |
 | 🗺️ **Dispatch Planning** | Real-time route planning with ETA calculation |
 | ⚡ **Criticality Selection** | Choose between Normal, High, and Critical emergency levels |
-| 🚦 **Signal Preemption** | ML-powered traffic signal clearing for emergency vehicles |
+| 🚦 **Signal Preemption** | ML-powered traffic signal clearing for emergency vehicles (simulation) |
+| ⏱️ **Live Response Tracking** | Real-time countdown timer with intersection status updates |
+| 📡 **Live Dispatch Updates** | Socket.IO pushes new emergency requests the moment a citizen reports them |
+| 🛡️ **Server-Reset Protection** | Detects backend data wipes (`dataEpoch` / `data_reset`) and signs the driver out with a clear notice |
 | ⏱️ **Live Response Tracking** | Real-time countdown timer with intersection status updates |
 | 📊 **Trip History** | Complete log of all emergency responses with statistics |
 | 🌙 **Dark Theme** | Eye-friendly dark UI optimized for emergency vehicle use |
@@ -56,31 +59,57 @@ signalaid_flutter/
 ├── android/                    # Android platform files
 ├── assets/
 │   └── images/
-│       └── icon.png           # App icon
+│       └── icon.png            # App icon
 ├── lib/
-│   ├── main.dart              # App entry point
+│   ├── main.dart               # App entry point + session gate
+│   ├── navigation.dart         # Global navigator key / routing
+│   ├── config/
+│   │   └── supabase_config.dart # Supabase URL/anon-key placeholders
 │   ├── models/
-│   │   ├── driver.dart        # Driver model
-│   │   ├── intersection.dart  # Intersection & DispatchPlan models
-│   │   └── trip.dart          # Trip & Criticality models
+│   │   ├── driver.dart         # Driver model
+│   │   ├── intersection.dart   # Intersection & DispatchPlan models
+│   │   └── trip.dart           # Trip & Criticality models
 │   ├── providers/
-│   │   └── trips_provider.dart # State management
+│   │   └── trips_provider.dart # State management, session, realtime
+│   ├── services/
+│   │   ├── auth_service.dart   # Register / login / token storage
+│   │   ├── dispatch_service.dart # Emergency dispatch API calls
+│   │   ├── realtime_service.dart # Socket.IO connection
+│   │   └── trip_service.dart   # Trip start/location/status API
 │   ├── screens/
-│   │   ├── login_screen.dart   # Login screen
-│   │   ├── dispatch_screen.dart # Dispatch planning
-│   │   ├── response_screen.dart # Active response tracking
-│   │   └── history_screen.dart  # Trip history
+│   │   ├── splash_screen.dart        # Boot + session restore
+│   │   ├── login_screen.dart         # Driver login
+│   │   ├── register_screen.dart      # Driver registration
+│   │   ├── approval_pending_screen.dart # Awaiting admin approval
+│   │   ├── dispatch_screen.dart      # Dispatch planning
+│   │   ├── response_screen.dart      # Active response tracking
+│   │   ├── history_screen.dart       # Trip history
+│   │   └── profile_screen.dart       # Driver profile / sign-out
 │   ├── utils/
-│   │   ├── app_colors.dart    # Color constants
+│   │   ├── app_colors.dart     # Color constants
+│   │   ├── boot_log.dart       # Boot diagnostics
 │   │   └── dispatch_helper.dart # Business logic
 │   └── widgets/
-│       ├── card.dart          # Reusable card component
+│       ├── card.dart           # Reusable card component
 │       ├── criticality_picker.dart # Severity selector
+│       ├── motion.dart         # Entry animations
 │       ├── primary_button.dart # Button component
-│       └── stat.dart          # Statistics display
-├── pubspec.yaml               # Dependencies & configuration
-└── README.md                  # This file
+│       └── stat.dart           # Statistics display
+├── pubspec.yaml                # Dependencies & configuration
+└── README.md                   # This file
 ```
+
+---
+
+## ⚙️ Configuration
+
+| What | Where |
+|------|-------|
+| Backend URL (`baseUrl`) | `lib/providers/trips_provider.dart` — hosted ClearPath server (`https://clearpath-server.onrender.com`) |
+| Supabase project | `lib/config/supabase_config.dart` — fill in your own `url` / `anonKey` placeholders (optional, for photo storage) |
+| Colors / theme | `lib/utils/app_colors.dart` |
+
+No service-role secrets ship in the app — drivers authenticate with Driver ID + vehicle number against the backend, and the session stays on-device.
 
 ---
 
@@ -97,8 +126,8 @@ signalaid_flutter/
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/signalaid_flutter.git
-   cd signalaid_flutter
+   git clone https://github.com/NavDevs/Signal-Aid.git
+   cd Signal-Aid
    ```
 
 2. **Install dependencies**
@@ -137,8 +166,8 @@ flutter build appbundle
 ## ⬇️ Direct Download
 
 <p align="center">
-  <a href="https://github.com/NavDevs/Signal-Aid/releases/download/v1.0.0/app-release.apk">
-    <img src="https://img.shields.io/badge/Download-APK%20(45.8MB)-brightgreen?logo=android" alt="Download APK" width="200">
+  <a href="https://github.com/NavDevs/Signal-Aid/releases/download/v1.0.7/SignalAid-v1.0.7-final.apk">
+    <img src="https://img.shields.io/badge/Download-Latest%20APK-brightgreen?logo=android" alt="Download APK" width="200">
   </a>
 </p>
 
