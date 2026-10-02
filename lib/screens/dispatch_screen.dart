@@ -123,7 +123,7 @@ class _DispatchScreenState extends State<DispatchScreen> {
   /// The precise OSRM route appears after accepting.
   String _etaEstimate(Map<String, dynamic> dispatch) {
     final km = double.tryParse('${dispatch['distanceKm'] ?? ''}');
-    if (km == null) return 'ETA Ã¢â‚¬â€';
+    if (km == null) return 'ETA —';
     final mins = (km / 30 * 60).ceil().clamp(1, 999);
     return '~$mins min';
   }
@@ -131,7 +131,7 @@ class _DispatchScreenState extends State<DispatchScreen> {
   /// Backend-authoritative countdown (resolution = reported + duration).
   String _remainingLabel(Map<String, dynamic> dispatch) {
     final secs = int.tryParse('${dispatch['remaining_seconds'] ?? ''}');
-    if (secs == null) return 'time left Ã¢â‚¬â€';
+    if (secs == null) return 'time left —';
     if (secs <= 0) return 'expiring';
     final h = secs ~/ 3600;
     final m = (secs % 3600) ~/ 60;
@@ -140,7 +140,7 @@ class _DispatchScreenState extends State<DispatchScreen> {
 
   /// Android back on the duty dashboard = leaving the app. A driver who is
   /// still AVAILABLE would silently keep receiving dispatches while the app
-  /// is closed, so they must switch OFFLINE first Ã¢â‚¬â€ the exit prompt makes
+  /// is closed, so they must switch OFFLINE first — the exit prompt makes
   /// that ask. BUSY cannot be changed mid-emergency (the response has to be
   /// finished first), and OFFLINE exits directly.
   
@@ -166,18 +166,22 @@ class _DispatchScreenState extends State<DispatchScreen> {
     final driverSub = [
       if ((provider.driver?.vehicleNo ?? '').isNotEmpty) provider.driver!.vehicleNo,
       if ((provider.driver?.organization ?? '').isNotEmpty) provider.driver!.organization,
-    ].join('  Ã‚Â·  ');
+    ].join('  ·  ');
 
     return PopScope(
-      canPop: true,
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        _confirmExit();
+      },
       child: Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: Column(
           children: [
-            // Ã¢â€â‚¬Ã¢â€â‚¬ Compact header: identity + quick actions on row one,
-            //    duty switch alone on row two Ã¢â‚¬â€ the two can never collide,
-            //    on any screen width. Ã¢â€â‚¬Ã¢â€â‚¬
+            // ── Compact header: identity + quick actions on row one,
+            //    duty switch alone on row two — the two can never collide,
+            //    on any screen width. ──
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
               child: Column(
@@ -264,7 +268,7 @@ class _DispatchScreenState extends State<DispatchScreen> {
                   const SizedBox(height: 10),
                   // Duty switch: full-width, own row. The label shrinks with
                   // an ellipsis instead of running under the buttons.
-                  Container(
+                                    Container(
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
                     decoration: BoxDecoration(
@@ -320,7 +324,7 @@ class _DispatchScreenState extends State<DispatchScreen> {
                     SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'Offline Ã¢â‚¬â€ new emergencies may not arrive until the server is reachable.',
+                        'Offline — new emergencies may not arrive until the server is reachable.',
                         style: TextStyle(fontSize: 11, color: AppColors.foreground),
                       ),
                     ),
@@ -328,9 +332,9 @@ class _DispatchScreenState extends State<DispatchScreen> {
                 ),
               ),
 
-            // Ã¢â€â‚¬Ã¢â€â‚¬ Everything below the banner scrolls as one piece Ã¢â‚¬â€ resume
+            // ── Everything below the banner scrolls as one piece — resume
             //    card, compact map and the job list can never overlap or
-            //    overflow, however short the screen is. Ã¢â€â‚¬Ã¢â€â‚¬
+            //    overflow, however short the screen is. ──
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.only(bottom: 20),
@@ -345,7 +349,7 @@ class _DispatchScreenState extends State<DispatchScreen> {
                         ),
                       ),
 
-                    // Ã¢â€â‚¬Ã¢â€â‚¬ Compact map: a glance, not the whole screen Ã¢â€â‚¬Ã¢â€â‚¬
+                    // ── Compact map: a glance, not the whole screen ──
                     Padding(
                       padding: EdgeInsets.fromLTRB(16, resume != null ? 12 : 8, 16, 0),
                       child: SizedBox(
@@ -363,7 +367,7 @@ class _DispatchScreenState extends State<DispatchScreen> {
                           child: const Padding(
                             padding: EdgeInsets.all(24),
                             child: Text(
-                              'Waiting for your GPS position and the first verified incidentÃ¢â‚¬Â¦',
+                              'Waiting for your GPS position and the first verified incident…',
                               textAlign: TextAlign.center,
                               style: TextStyle(fontSize: 12, color: AppColors.mutedForeground),
                             ),
@@ -444,7 +448,7 @@ class _DispatchScreenState extends State<DispatchScreen> {
 
                     const SizedBox(height: 12),
 
-                    // Ã¢â€â‚¬Ã¢â€â‚¬ Emergency request cards (animated in/out as jobs arrive or lock) Ã¢â€â‚¬Ã¢â€â‚¬
+                    // ── Emergency request cards (animated in/out as jobs arrive or lock) ──
                     AnimatedSwitcher(
                       duration: const Duration(milliseconds: 350),
                       switchInCurve: Curves.easeOutQuad,
@@ -470,7 +474,7 @@ class _DispatchScreenState extends State<DispatchScreen> {
                                         size: 34, color: AppColors.success),
                                     SizedBox(height: 10),
                                     Text(
-                                      'All clear Ã¢â‚¬â€ no verified emergencies for your vehicle.',
+                                      'All clear — no verified emergencies for your vehicle.',
                                       textAlign: TextAlign.center,
                                       style: TextStyle(
                                           fontSize: 13,
@@ -566,7 +570,7 @@ class _DispatchScreenState extends State<DispatchScreen> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '${isFire ? 'Fire' : 'Emergency'} Ã‚Â· ${arrived ? 'Arrived at scene' : 'En route'}',
+                      '${isFire ? 'Fire' : 'Emergency'} · ${arrived ? 'Arrived at scene' : 'En route'}',
                       style: const TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
@@ -619,13 +623,13 @@ class _DispatchScreenState extends State<DispatchScreen> {
       BuildContext context, TripsProvider provider, Map<String, dynamic> dispatch) {
     final rawType = (dispatch['type'] ?? 'emergency').toString().toLowerCase();
     final isFire = rawType == 'fire';
-    final title = isFire ? 'Ã°Å¸â€Â¥ FIRE' : 'Ã°Å¸Å¡Â¨ ACCIDENT';
+    final title = isFire ? '🔥 FIRE' : '🚨 ACCIDENT';
     final address = (dispatch['address'] ?? 'Unknown location').toString();
     final description = (dispatch['description'] ?? '').toString();
     final photoUrl = (dispatch['photo_url'] ?? '').toString();
     final priority = (dispatch['priority'] ?? '').toString();
     final km = double.tryParse('${dispatch['distanceKm'] ?? ''}');
-    final distLabel = km != null ? '${km.toStringAsFixed(1)} km' : 'distance Ã¢â‚¬â€';
+    final distLabel = km != null ? '${km.toStringAsFixed(1)} km' : 'distance —';
     final busy = _accepting && _acceptingId == dispatch['id']?.toString();
 
     return Padding(
@@ -668,41 +672,31 @@ class _DispatchScreenState extends State<DispatchScreen> {
             // The actual incident photo from the citizen's report.
             if (photoUrl.isNotEmpty) ...[
               const SizedBox(height: 10),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-                    decoration: BoxDecoration(
-                      color: (availability == 'BUSY' ? AppColors.accent : AppColors.success).withValues(alpha: 0.14),
-                      borderRadius: BorderRadius.circular(999),
-                      border: Border.all(
-                          color: (availability == 'BUSY' ? AppColors.accent : AppColors.success).withValues(alpha: 0.55),
-                          width: 1.5),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 9,
-                          height: 9,
-                          decoration: BoxDecoration(
-                              color: availability == 'BUSY' ? AppColors.accent : AppColors.success,
-                              shape: BoxShape.circle),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            availability == 'BUSY'
-                                ? 'BUSY (on emergency)'
-                                : 'AVAILABLE (waiting for jobs)',
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 0.3,
-                              color: availability == 'BUSY' ? AppColors.accent : AppColors.success,
-                            ),
-                          ),
-                        ),
-                      ],
+              GestureDetector(
+                onTap: () => showDialog(
+                  context: context,
+                  builder: (_) => Dialog(
+                    backgroundColor: Colors.transparent,
+                    insetPadding: const EdgeInsets.all(16),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(AppColors.radius),
+                      child: Image.network(
+                        photoUrl,
+                        fit: BoxFit.contain,
+                        // Cap decode size so a huge upload can't blow up
+                        // memory when the fullscreen dialog opens.
+                        cacheWidth: 1920,
+                        frameBuilder: (context, child, frame, wasSync) {
+                          if (wasSync) return child;
+                          return AnimatedOpacity(
+                            opacity: frame == null ? 0 : 1,
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeOut,
+                            child: child,
+                          );
+                        },
+                        errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                      ),
                     ),
                   ),
                 ),
@@ -732,7 +726,7 @@ class _DispatchScreenState extends State<DispatchScreen> {
             ],
             const SizedBox(height: 8),
             Text(
-              '$distLabel Ã¢â‚¬Â¢ ${_etaEstimate(dispatch)} Ã¢â‚¬Â¢ ${_remainingLabel(dispatch)}',
+              '$distLabel • ${_etaEstimate(dispatch)} • ${_remainingLabel(dispatch)}',
               style: const TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
