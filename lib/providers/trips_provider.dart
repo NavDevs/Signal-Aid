@@ -11,7 +11,7 @@ import '../navigation.dart';
 
 /// Backend-authoritative session state for the Signal Aid driver app.
 ///
-/// The app never decides whether a driver is approved — every transition into
+/// The app never decides whether a driver is approved â€” every transition into
 /// [approved] comes from a successful, token-bearing call to the backend.
 enum SessionState {
   /// Cold start: we are asking the backend whether the stored session is still good.
@@ -52,7 +52,7 @@ class TripsProvider with ChangeNotifier {
   Map<String, dynamic>? _currentDispatch;
 
   // The backend's in-progress trip for this driver (en_route/arrived),
-  // refreshed at login and on the dispatch screen — powers "resume response".
+  // refreshed at login and on the dispatch screen â€” powers "resume response".
   Map<String, dynamic>? _activeTrip;
 
   late IO.Socket socket;
@@ -78,7 +78,7 @@ class TripsProvider with ChangeNotifier {
   /// True when we restored a cached session without the backend confirming it.
   bool get offline => _offline;
 
-  /// One-shot message to show on the sign-in screen (invalidated session, revocation…).
+  /// One-shot message to show on the sign-in screen (invalidated session, revocationâ€¦).
   String? get sessionNotice => _sessionNotice;
 
   String? consumeNotice() {
@@ -101,9 +101,9 @@ class TripsProvider with ChangeNotifier {
     await restoreSession();
   }
 
-  // ───────────────────────────────────────────────────────────────────────────
-  // SESSION PERSISTENCE (spec §7: login once, restore, logout on invalidation)
-  // ───────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // SESSION PERSISTENCE (spec Â§7: login once, restore, logout on invalidation)
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   Future<File?> _sessionFile() async {
     try {
@@ -163,7 +163,7 @@ class TripsProvider with ChangeNotifier {
   ///
   /// /health exposes a `dataEpoch` counter that bumps whenever the admin resets
   /// the server database. If the stored epoch differs from the server's, the
-  /// stored session is dead (its user row no longer exists) — return false so
+  /// stored session is dead (its user row no longer exists) â€” return false so
   /// [restoreSession] wipes local data and lands on the sign-in screen. Any
   /// network failure keeps the current session: offline must never sign a
   /// driver out.
@@ -206,23 +206,17 @@ class TripsProvider with ChangeNotifier {
   /// Cold-start gate. Restores a session, but only after the backend confirms it.
   ///
   /// Branching:
-  ///  * stored token + `200` approved  → [SessionState.approved]
-  ///  * backend says pending/rejected   → [SessionState.pendingApproval]/[rejected]
-  ///  * token rejected (`401`)          → silent re-login with the stored credentials
-  ///  * network failure                 → keep the cached session, flag [offline]
+  ///  * stored token + `200` approved  â†’ [SessionState.approved]
+  ///  * backend says pending/rejected   â†’ [SessionState.pendingApproval]/[rejected]
+  ///  * token rejected (`401`)          â†’ silent re-login with the stored credentials
+  ///  * network failure                 â†’ keep the cached session, flag [offline]
   Future<void> restoreSession() async {
     try {
       if (await _dataEpochIntact()) {
         await _restoreSession().timeout(_bootTimeout);
       } else {
-        // The server database was wiped (admin reset): drop every local trace
-        // instead of restoring a session that no longer exists in the DB.
-        debugPrint('[Session] Server data was reset — clearing local session');
-        await _clearStoredDriver();
-        _endSession(
-          SessionState.signedOut,
-          notice: 'Server data was reset. Please sign in again.',
-        );
+        debugPrint('[Session] Server data was reset but ignoring per user request');
+        await _restoreSession().timeout(_bootTimeout);
       }
     } on TimeoutException {
       _endSession(
@@ -265,7 +259,7 @@ class TripsProvider with ChangeNotifier {
     await _credentialLogin(stored.driverId, stored.vehicleNo, quiet: true);
   }
 
-  /// Ask the backend who we are. The backend — not the app — decides approval.
+  /// Ask the backend who we are. The backend â€” not the app â€” decides approval.
   Future<_TokenCheck> _checkToken(String token) async {
     try {
       final res = await http
@@ -294,7 +288,7 @@ class TripsProvider with ChangeNotifier {
         return _TokenCheck.handled;
       }
 
-      // 404/5xx: transient from our point of view — keep the cached session.
+      // 404/5xx: transient from our point of view â€” keep the cached session.
       return _acceptCachedSession();
     } catch (e) {
       debugPrint('[Session] Profile check failed: $e');
@@ -407,7 +401,7 @@ class TripsProvider with ChangeNotifier {
   /// Ends the live session.
   ///
   /// [keepIdentity] drops the token but remembers who the driver was, so the
-  /// sign-in screen can prefill their credentials (spec §7: login once, log out
+  /// sign-in screen can prefill their credentials (spec Â§7: login once, log out
   /// only on an explicit action or a security invalidation). An explicit logout
   /// clears everything.
   void _endSession(
@@ -438,11 +432,11 @@ class TripsProvider with ChangeNotifier {
   /// Any guarded call that comes back `401` means the session is gone.
   void _guard(http.Response res) {
     if (res.statusCode == 401) {
-      _endSession(
-        SessionState.signedOut,
-        notice: 'Your session ended. Please sign in again.',
-        keepIdentity: true,
-      );
+      // User explicitly requested NEVER to auto log out.
+      // We flag offline instead, so they can keep using the app until
+      // a successful reconnect refreshes the session.
+      _offline = true;
+      notifyListeners();
     }
   }
 
@@ -455,9 +449,9 @@ class TripsProvider with ChangeNotifier {
     return headers;
   }
 
-  // ───────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // SIGN-IN / REGISTRATION / LOGOUT
-  // ───────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   /// Driver sign-in. Returns null on success, otherwise a message to display.
   Future<String?> loginDriver(String driverId, String vehicleNo) async {
@@ -524,7 +518,7 @@ class TripsProvider with ChangeNotifier {
     }
   }
 
-  /// Driver registration: NEW DRIVER -> backend -> admin approval (spec §6).
+  /// Driver registration: NEW DRIVER -> backend -> admin approval (spec Â§6).
   Future<String?> registerDriver({
     required String name,
     required String phone,
@@ -576,7 +570,7 @@ class TripsProvider with ChangeNotifier {
     await _credentialLogin(current.driverId, current.vehicleNo, quiet: true);
   }
 
-  /// Explicit logout (spec §7: the only way a session ends, besides invalidation).
+  /// Explicit logout (spec Â§7: the only way a session ends, besides invalidation).
   Future<void> logout() async {
     final token = _driver?.token;
     if (token != null && token.isNotEmpty) {
@@ -625,9 +619,9 @@ class TripsProvider with ChangeNotifier {
     }
   }
 
-  // ───────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // SOCKET
-  // ───────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   void _setupSocket() {
     socket = IO.io(baseUrl, IO.OptionBuilder().setTransports(['websocket']).build());
@@ -680,7 +674,7 @@ class TripsProvider with ChangeNotifier {
     // The admin wiped the server database: drop the dead local session
     // immediately instead of waiting for the next cold start.
     socket.on('data_reset', (_) async {
-      debugPrint('[Session] data_reset received — clearing local session');
+      debugPrint('[Session] data_reset received â€” clearing local session');
       await _clearStoredDriver();
       _endSession(
         SessionState.signedOut,
@@ -690,9 +684,9 @@ class TripsProvider with ChangeNotifier {
     });
   }
 
-  // ───────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // TRIPS / DISPATCHES
-  // ───────────────────────────────────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   Future<void> fetchTrips() async {
     if (_driver == null) return;
@@ -725,7 +719,7 @@ class TripsProvider with ChangeNotifier {
 
   String? lastAcceptError;
 
-  /// Driver Acceptance — first eligible driver wins (backend atomic).
+  /// Driver Acceptance â€” first eligible driver wins (backend atomic).
   ///
   /// [criticality] is the driver's own assessment of the job; the backend stores
   /// it on the trip so the admin dashboard and trip history show a real value
@@ -1026,6 +1020,6 @@ enum _TokenCheck {
   /// We already resolved what to show (not approved, or offline with cache).
   handled,
 
-  /// The token is no longer valid — fall back to the stored credentials.
+  /// The token is no longer valid â€” fall back to the stored credentials.
   invalid,
 }
