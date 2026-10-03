@@ -116,16 +116,17 @@ class _DispatchScreenState extends State<DispatchScreen> {
           arguments: {
             'tripId': tripId,
             'dispatch': dispatch,
-            // Where this emergency journey starts (usually the hospital bay).
-            // The response screen uses it for the ambulance way-back leg.
             if (_myPosition != null) 'startLat': _myPosition!.latitude,
             if (_myPosition != null) 'startLon': _myPosition!.longitude,
           },
         );
-      } else {
+      } else if (provider.lastAcceptError != null) {
+        // Only show snackbar for errors the driver can actually act on
+        // (e.g. "You are already on an active emergency").
+        // Stale-job 409s are silently cleaned up — no snackbar.
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(provider.lastAcceptError ?? 'REQUEST ALREADY TAKEN'),
+            content: Text(provider.lastAcceptError!),
             backgroundColor: Colors.red,
           ),
         );
