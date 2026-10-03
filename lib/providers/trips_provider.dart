@@ -788,22 +788,19 @@ class TripsProvider with ChangeNotifier {
 
       if (response.statusCode == 409) {
         final lower = rawError.toLowerCase();
-        // Silently ignore legacy availability errors — the concept is removed.
-        if (lower.contains('offline') ||
-            lower.contains('must be available') ||
-            lower.contains('availability')) {
-          await fetchDispatches();
-          // Don't set any error — just re-sync the job list silently.
-        } else if (lower.contains('busy') ||
+        // Silently drop the stale job from the list and re-sync.
+        // Never show availability/taken errors — just clean up the UI.
+        _activeDispatches.removeWhere((d) => d['id']?.toString() == dispatchId?.toString());
+        _goneDuringFetch.add(dispatchId);
+        notifyListeners();
+        if (lower.contains('busy') ||
             lower.contains('active emergency') ||
             lower.contains('already on') ||
             lower.contains('driver_is_busy')) {
           lastAcceptError = 'You are already on an active emergency. Finish the current response first.';
-        } else {
-          lastAcceptError = rawError;
         }
-        // Re-sync instead of guessing.
-        await fetchDispatches();
+        // Re-sync in the background — no error shown for taken/offline jobs.
+        fetchDispatches();
       } else {
         lastAcceptError = rawError;
       }
