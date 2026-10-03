@@ -177,13 +177,7 @@ class _DispatchScreenState extends State<DispatchScreen> {
       if (lat != null && lon != null) incidentPoints.add(LatLng(lat, lon));
     }
 
-    final availability = (provider.driver?.availability ?? 'OFFLINE')
-        .toUpperCase();
-    final availColor = availability == 'AVAILABLE'
-        ? AppColors.success
-        : availability == 'BUSY'
-        ? AppColors.accent
-        : AppColors.mutedForeground;
+
     final driverSub = [
       if ((provider.driver?.vehicleNo ?? '').isNotEmpty)
         provider.driver!.vehicleNo,
@@ -290,63 +284,6 @@ class _DispatchScreenState extends State<DispatchScreen> {
                           ),
                         ),
                       ],
-                    ),
-                    const SizedBox(height: 10),
-                    // Duty switch: full-width, own row. The label shrinks with
-                    // an ellipsis instead of running under the buttons.
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 11,
-                      ),
-                      decoration: BoxDecoration(
-                        color:
-                            (availability == 'BUSY'
-                                    ? AppColors.accent
-                                    : AppColors.success)
-                                .withValues(alpha: 0.14),
-                        borderRadius: BorderRadius.circular(999),
-                        border: Border.all(
-                          color:
-                              (availability == 'BUSY'
-                                      ? AppColors.accent
-                                      : AppColors.success)
-                                  .withValues(alpha: 0.55),
-                          width: 1.5,
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 9,
-                            height: 9,
-                            decoration: BoxDecoration(
-                              color: availability == 'BUSY'
-                                  ? AppColors.accent
-                                  : AppColors.success,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              availability == 'BUSY'
-                                  ? 'BUSY (on emergency)'
-                                  : 'AVAILABLE (waiting for jobs)',
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 0.3,
-                                color: availability == 'BUSY'
-                                    ? AppColors.accent
-                                    : AppColors.success,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
                     ),
                   ],
                 ),

@@ -9,8 +9,6 @@ class Driver {
   final String? vehicleType;
   final String? organization;
   final String? approvalStatus;
-  /// OFFLINE | AVAILABLE | BUSY — backend-owned, mirrored for display only.
-  final String? availability;
   /// Bearer token for authenticated calls. Never trusted for authorization.
   final String? token;
 
@@ -23,7 +21,6 @@ class Driver {
     this.vehicleType,
     this.organization,
     this.approvalStatus,
-    this.availability,
     this.token,
   });
 
@@ -46,7 +43,6 @@ class Driver {
     String? vehicleType,
     String? organization,
     String? approvalStatus,
-    String? availability,
     String? token,
     bool clearToken = false,
   }) {
@@ -59,7 +55,6 @@ class Driver {
       vehicleType: vehicleType ?? this.vehicleType,
       organization: organization ?? this.organization,
       approvalStatus: approvalStatus ?? this.approvalStatus,
-      availability: availability ?? this.availability,
       token: clearToken ? null : (token ?? this.token),
     );
   }
@@ -74,7 +69,6 @@ class Driver {
       'vehicleType': vehicleType,
       'organization': organization,
       'approvalStatus': approvalStatus,
-      'availability': availability,
       'token': token,
     };
   }
@@ -89,7 +83,6 @@ class Driver {
       vehicleType: (json['vehicleType'] ?? json['vehicle_type'])?.toString(),
       organization: json['organization']?.toString(),
       approvalStatus: (json['approvalStatus'] ?? json['approval_status'])?.toString(),
-      availability: (json['availability'] ?? json['availability_status'])?.toString(),
       token: json['token']?.toString(),
     );
   }

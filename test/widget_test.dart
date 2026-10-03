@@ -32,7 +32,7 @@ void main() {
         vehicleType: 'ambulance',
         organization: 'City Hospital',
         approvalStatus: 'approved',
-        availability: 'AVAILABLE',
+        
         token: 'jwt-token',
       );
 
@@ -42,7 +42,6 @@ void main() {
       expect(restored.driverId, 'DRV-204');
       expect(restored.vehicleNo, 'AMB-1187');
       expect(restored.approvalStatus, 'approved');
-      expect(restored.availability, 'AVAILABLE');
       expect(restored.hasToken, isTrue);
     });
 
@@ -53,7 +52,6 @@ void main() {
         'vehicle_no': 'FIRE-1001',
         'vehicle_type': 'fire',
         'approval_status': 'pending',
-        'availability': 'OFFLINE',
       });
 
       expect(restored.driverId, 'FIRE-01');

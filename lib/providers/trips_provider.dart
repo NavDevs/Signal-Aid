@@ -332,7 +332,7 @@ class TripsProvider with ChangeNotifier {
       vehicleType: user['vehicle_type']?.toString() ?? _driver?.vehicleType,
       organization: user['organization']?.toString() ?? _driver?.organization,
       approvalStatus: user['approval_status']?.toString() ?? 'approved',
-      availability: user['availability']?.toString() ?? _driver?.availability,
+      
       token: token ?? _driver?.token,
     );
 
@@ -611,7 +611,7 @@ class TripsProvider with ChangeNotifier {
       if (res.statusCode == 200) {
         final body = _tryDecode(res.body);
         if (body != null && _driver != null) {
-          _driver = _driver!.copyWith(availability: body['availability']?.toString());
+          _driver = _driver!;
           notifyListeners();
         }
         return null;
@@ -859,7 +859,7 @@ class TripsProvider with ChangeNotifier {
             .patch(
               Uri.parse('$baseUrl/api/driver/location'),
               headers: _authHeaders(),
-              body: json.encode({'latitude': lat, 'longitude': lon, 'availability': 'BUSY'}),
+              body: json.encode({'latitude': lat, 'longitude': lon, }),
             )
             .timeout(_requestTimeout);
         _guard(duty);

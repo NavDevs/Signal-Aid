@@ -183,14 +183,7 @@ class _ProfileScreenState extends State<ProfileScreen> with WidgetsBindingObserv
                     _row('Vehicle number', driver?.vehicleNo),
                     _row('Vehicle type', driver?.vehicleType),
                     _row('Organization', driver?.organization),
-                    // TASK 1: BUSY availability is server-internal only and must
-                    // never be shown to drivers. Always display as AVAILABLE.
-                    _row(
-                      'Availability',
-                      (driver?.availability ?? 'OFFLINE').toUpperCase() == 'BUSY'
-                          ? 'AVAILABLE'
-                          : driver?.availability,
-                    ),
+                    
                   ],
                 ),
               ),
