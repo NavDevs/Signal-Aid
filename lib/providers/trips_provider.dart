@@ -759,29 +759,48 @@ class TripsProvider with ChangeNotifier {
       _guard(response);
 
       if (response.statusCode == 200) {
-        _currentDispatch = _activeDispatches.firstWhere(
-          (d) => d['id'] == dispatchId,
-          orElse: () => {},
-        );
+        // Decode the server response BEFORE touching the dispatch list — the
+        // socket 'dispatch.accepted' event may already have removed it, and we
+        // need the accepted payload as a fallback so nothing breaks.
+        final accepted = _tryDecode(response.body) ?? {'id': dispatchId};
+
+        final matches = _activeDispatches.where((d) => d['id'] == dispatchId);
+        if (matches.isNotEmpty) {
+          _currentDispatch = matches.first;
+        } else {
+          // Socket already removed the job (race between broadcast and HTTP).
+          // Patch the accepted response into the current-dispatch slot so the
+          // response screen and resume card have all required fields.
+          _currentDispatch = {...accepted, 'id': dispatchId};
+        }
         _activeDispatches.removeWhere((d) => d['id'] == dispatchId);
         // Remember the trip too: if the driver backs out of the response
         // screen, the dispatch screen can still offer "resume". Dispatch fields
         // (lat/lng/address) are merged under the trip so the card renders even
         // before the first refresh replaces it with the joined backend row.
-        final accepted = _tryDecode(response.body) ?? {'id': dispatchId};
         _activeTrip = {...?_currentDispatch, ...accepted};
         notifyListeners();
         return accepted;
       }
 
       final err = _tryDecode(response.body);
-      lastAcceptError =
-          (err?['error'] ?? 'Could not accept (status ${response.statusCode})').toString();
+      final rawError = (err?['error'] ?? 'Could not accept (status ${response.statusCode})').toString();
 
       if (response.statusCode == 409) {
+        final lower = rawError.toLowerCase();
+        if (lower.contains('busy') ||
+            lower.contains('active emergency') ||
+            lower.contains('already on') ||
+            lower.contains('driver_is_busy')) {
+          lastAcceptError = 'You are already on an active emergency. Finish the current response first.';
+        } else {
+          lastAcceptError = rawError;
+        }
         // The backend refuses for two different reasons: another driver won the
         // race, or we are no longer AVAILABLE. Re-sync instead of guessing.
         await fetchDispatches();
+      } else {
+        lastAcceptError = rawError;
       }
     } on TimeoutException {
       lastAcceptError = 'Server took too long to respond. Try again.';

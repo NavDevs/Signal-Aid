@@ -33,7 +33,9 @@ class _DispatchScreenState extends State<DispatchScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _refreshJobs(silent: true));
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _refreshJobs(silent: true),
+    );
     _refreshTimer = Timer.periodic(const Duration(seconds: 20), (_) {
       if (mounted) _refreshJobs(silent: true);
     });
@@ -59,10 +61,14 @@ class _DispatchScreenState extends State<DispatchScreen> {
         if (permission == LocationPermission.whileInUse ||
             permission == LocationPermission.always) {
           final position = await Geolocator.getCurrentPosition(
-            locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+            locationSettings: const LocationSettings(
+              accuracy: LocationAccuracy.high,
+            ),
           );
           if (mounted) {
-            setState(() => _myPosition = LatLng(position.latitude, position.longitude));
+            setState(
+              () => _myPosition = LatLng(position.latitude, position.longitude),
+            );
           }
         }
       }
@@ -71,7 +77,10 @@ class _DispatchScreenState extends State<DispatchScreen> {
     }
 
     if (_myPosition != null) {
-      await provider.fetchDispatches(lat: _myPosition!.latitude, lon: _myPosition!.longitude);
+      await provider.fetchDispatches(
+        lat: _myPosition!.latitude,
+        lon: _myPosition!.longitude,
+      );
     } else {
       await provider.fetchDispatches();
     }
@@ -80,42 +89,54 @@ class _DispatchScreenState extends State<DispatchScreen> {
     await provider.restoreActiveTrip();
 
     if (!silent && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Job list refreshed')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Job list refreshed')));
     }
   }
 
   Future<void> _acceptDispatch(
-      BuildContext context, TripsProvider provider, Map<String, dynamic> dispatch) async {
+    BuildContext context,
+    TripsProvider provider,
+    Map<String, dynamic> dispatch,
+  ) async {
     setState(() {
       _accepting = true;
       _acceptingId = dispatch['id']?.toString();
     });
-    final trip = await provider.acceptDispatch(dispatch['id'].toString());
-    if (!mounted) return;
-    setState(() {
-      _accepting = false;
-      _acceptingId = null;
-    });
+    try {
+      final trip = await provider.acceptDispatch(dispatch['id'].toString());
+      if (!mounted) return;
 
-    if (trip != null) {
-      final tripId = (trip['id'] ?? dispatch['id']).toString();
-      Navigator.pushNamed(context, '/response', arguments: {
-        'tripId': tripId,
-        'dispatch': dispatch,
-        // Where this emergency journey starts (usually the hospital bay).
-        // The response screen uses it for the ambulance way-back leg.
-        if (_myPosition != null) 'startLat': _myPosition!.latitude,
-        if (_myPosition != null) 'startLon': _myPosition!.longitude,
-      });
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(provider.lastAcceptError ?? 'REQUEST ALREADY TAKEN'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (trip != null) {
+        final tripId = (trip['id'] ?? dispatch['id']).toString();
+        Navigator.pushNamed(
+          context,
+          '/response',
+          arguments: {
+            'tripId': tripId,
+            'dispatch': dispatch,
+            // Where this emergency journey starts (usually the hospital bay).
+            // The response screen uses it for the ambulance way-back leg.
+            if (_myPosition != null) 'startLat': _myPosition!.latitude,
+            if (_myPosition != null) 'startLon': _myPosition!.longitude,
+          },
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(provider.lastAcceptError ?? 'REQUEST ALREADY TAKEN'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _accepting = false;
+          _acceptingId = null;
+        });
+      }
     }
   }
 
@@ -143,7 +164,6 @@ class _DispatchScreenState extends State<DispatchScreen> {
   /// is closed, so they must switch OFFLINE first — the exit prompt makes
   /// that ask. BUSY cannot be changed mid-emergency (the response has to be
   /// finished first), and OFFLINE exits directly.
-  
 
   @override
   Widget build(BuildContext context) {
@@ -157,364 +177,441 @@ class _DispatchScreenState extends State<DispatchScreen> {
       if (lat != null && lon != null) incidentPoints.add(LatLng(lat, lon));
     }
 
-    final availability = (provider.driver?.availability ?? 'OFFLINE').toUpperCase();
+    final availability = (provider.driver?.availability ?? 'OFFLINE')
+        .toUpperCase();
     final availColor = availability == 'AVAILABLE'
         ? AppColors.success
         : availability == 'BUSY'
-            ? AppColors.accent
-            : AppColors.mutedForeground;
+        ? AppColors.accent
+        : AppColors.mutedForeground;
     final driverSub = [
-      if ((provider.driver?.vehicleNo ?? '').isNotEmpty) provider.driver!.vehicleNo,
-      if ((provider.driver?.organization ?? '').isNotEmpty) provider.driver!.organization,
+      if ((provider.driver?.vehicleNo ?? '').isNotEmpty)
+        provider.driver!.vehicleNo,
+      if ((provider.driver?.organization ?? '').isNotEmpty)
+        provider.driver!.organization,
     ].join('  ·  ');
 
     return PopScope(
       canPop: true,
       child: Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // ── Compact header: identity + quick actions on row one,
-            //    duty switch alone on row two — the two can never collide,
-            //    on any screen width. ──
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 38,
-                        height: 38,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(12),
+        backgroundColor: AppColors.background,
+        body: SafeArea(
+          child: Column(
+            children: [
+              // ── Compact header: identity + quick actions on row one,
+              //    duty switch alone on row two — the two can never collide,
+              //    on any screen width. ──
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 38,
+                          height: 38,
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.emergency,
+                            size: 20,
+                            color: Colors.white,
+                          ),
                         ),
-                        child: const Icon(Icons.emergency, size: 20, color: Colors.white),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              provider.driver?.displayName ?? 'Emergency Response',
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 1,
-                              style: const TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.foreground,
-                              ),
-                            ),
-                            if (driverSub.isNotEmpty) ...[
-                              const SizedBox(height: 2),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
                               Text(
-                                driverSub,
+                                provider.driver?.displayName ??
+                                    'Emergency Response',
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 1,
                                 style: const TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.mutedForeground,
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.foreground,
                                 ),
                               ),
+                              if (driverSub.isNotEmpty) ...[
+                                const SizedBox(height: 2),
+                                Text(
+                                  driverSub,
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.mutedForeground,
+                                  ),
+                                ),
+                              ],
                             ],
-                          ],
+                          ),
                         ),
-                      ),
-                      IconButton(
-                        onPressed: () => _refreshJobs(),
-                        icon: const Icon(Icons.refresh, size: 18),
-                        tooltip: 'Refresh jobs',
-                        visualDensity: VisualDensity.compact,
-                        style: IconButton.styleFrom(
-                          backgroundColor: AppColors.card,
-                          foregroundColor: AppColors.foreground,
-                          side: const BorderSide(color: AppColors.border),
+                        IconButton(
+                          onPressed: () => _refreshJobs(),
+                          icon: const Icon(Icons.refresh, size: 18),
+                          tooltip: 'Refresh jobs',
+                          visualDensity: VisualDensity.compact,
+                          style: IconButton.styleFrom(
+                            backgroundColor: AppColors.card,
+                            foregroundColor: AppColors.foreground,
+                            side: const BorderSide(color: AppColors.border),
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 6),
-                      IconButton(
-                        onPressed: () => Navigator.pushNamed(context, '/history'),
-                        icon: const Icon(Icons.access_time, size: 18),
-                        tooltip: 'Response history',
-                        visualDensity: VisualDensity.compact,
-                        style: IconButton.styleFrom(
-                          backgroundColor: AppColors.card,
-                          foregroundColor: AppColors.foreground,
-                          side: const BorderSide(color: AppColors.border),
+                        const SizedBox(width: 6),
+                        IconButton(
+                          onPressed: () =>
+                              Navigator.pushNamed(context, '/history'),
+                          icon: const Icon(Icons.access_time, size: 18),
+                          tooltip: 'Response history',
+                          visualDensity: VisualDensity.compact,
+                          style: IconButton.styleFrom(
+                            backgroundColor: AppColors.card,
+                            foregroundColor: AppColors.foreground,
+                            side: const BorderSide(color: AppColors.border),
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 6),
-                      IconButton(
-                        onPressed: () => Navigator.pushNamed(context, '/profile'),
-                        icon: const Icon(Icons.person_outline, size: 18),
-                        tooltip: 'Profile & logout',
-                        visualDensity: VisualDensity.compact,
-                        style: IconButton.styleFrom(
-                          backgroundColor: AppColors.card,
-                          foregroundColor: AppColors.foreground,
-                          side: const BorderSide(color: AppColors.border),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  // Duty switch: full-width, own row. The label shrinks with
-                  // an ellipsis instead of running under the buttons.
-                                    Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-                    decoration: BoxDecoration(
-                      color: (availability == 'BUSY' ? AppColors.accent : AppColors.success).withValues(alpha: 0.14),
-                      borderRadius: BorderRadius.circular(999),
-                      border: Border.all(
-                          color: (availability == 'BUSY' ? AppColors.accent : AppColors.success).withValues(alpha: 0.55),
-                          width: 1.5),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 9,
-                          height: 9,
-                          decoration: BoxDecoration(
-                              color: availability == 'BUSY' ? AppColors.accent : AppColors.success,
-                              shape: BoxShape.circle),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            availability == 'BUSY'
-                                ? 'BUSY (on emergency)'
-                                : 'AVAILABLE (waiting for jobs)',
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 0.3,
-                              color: availability == 'BUSY' ? AppColors.accent : AppColors.success,
-                            ),
+                        const SizedBox(width: 6),
+                        IconButton(
+                          onPressed: () =>
+                              Navigator.pushNamed(context, '/profile'),
+                          icon: const Icon(Icons.person_outline, size: 18),
+                          tooltip: 'Profile & logout',
+                          visualDensity: VisualDensity.compact,
+                          style: IconButton.styleFrom(
+                            backgroundColor: AppColors.card,
+                            foregroundColor: AppColors.foreground,
+                            side: const BorderSide(color: AppColors.border),
                           ),
                         ),
                       ],
                     ),
-                  ),
-                ],
-              ),
-            ),
-
-            if (provider.offline)
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16),
-                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                decoration: BoxDecoration(
-                  color: AppColors.accent.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(AppColors.radius),
-                  border: Border.all(color: AppColors.accent.withValues(alpha: 0.4)),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(Icons.cloud_off, size: 14, color: AppColors.accent),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Offline — new emergencies may not arrive until the server is reachable.',
-                        style: TextStyle(fontSize: 11, color: AppColors.foreground),
+                    const SizedBox(height: 10),
+                    // Duty switch: full-width, own row. The label shrinks with
+                    // an ellipsis instead of running under the buttons.
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 11,
+                      ),
+                      decoration: BoxDecoration(
+                        color:
+                            (availability == 'BUSY'
+                                    ? AppColors.accent
+                                    : AppColors.success)
+                                .withValues(alpha: 0.14),
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(
+                          color:
+                              (availability == 'BUSY'
+                                      ? AppColors.accent
+                                      : AppColors.success)
+                                  .withValues(alpha: 0.55),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 9,
+                            height: 9,
+                            decoration: BoxDecoration(
+                              color: availability == 'BUSY'
+                                  ? AppColors.accent
+                                  : AppColors.success,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              availability == 'BUSY'
+                                  ? 'BUSY (on emergency)'
+                                  : 'AVAILABLE (waiting for jobs)',
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.3,
+                                color: availability == 'BUSY'
+                                    ? AppColors.accent
+                                    : AppColors.success,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
               ),
 
-            // ── Everything below the banner scrolls as one piece — resume
-            //    card, compact map and the job list can never overlap or
-            //    overflow, however short the screen is. ──
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.only(bottom: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    if (resume != null)
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                        child: StaggerIn(
-                          child: _buildResumeCard(context, resume),
+              if (provider.offline)
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 8,
+                    horizontal: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.accent.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(AppColors.radius),
+                    border: Border.all(
+                      color: AppColors.accent.withValues(alpha: 0.4),
+                    ),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.cloud_off, size: 14, color: AppColors.accent),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Offline — new emergencies may not arrive until the server is reachable.',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: AppColors.foreground,
+                          ),
                         ),
                       ),
+                    ],
+                  ),
+                ),
 
-                    // ── Compact map: a glance, not the whole screen ──
-                    Padding(
-                      padding: EdgeInsets.fromLTRB(16, resume != null ? 12 : 8, 16, 0),
-                      child: SizedBox(
-                        height: (MediaQuery.sizeOf(context).height * 0.26)
-                            .clamp(160.0, 260.0)
-                            .toDouble(),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(AppColors.radius),
-                          child: Stack(
+              // ── Everything below the banner scrolls as one piece — resume
+              //    card, compact map and the job list can never overlap or
+              //    overflow, however short the screen is. ──
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.only(bottom: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      if (_myPosition == null && incidentPoints.isEmpty)
-                        Container(
-                          color: AppColors.card,
-                          alignment: Alignment.center,
-                          child: const Padding(
-                            padding: EdgeInsets.all(24),
-                            child: Text(
-                              'Waiting for your GPS position and the first verified incident…',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 12, color: AppColors.mutedForeground),
-                            ),
+                      if (resume != null)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                          child: StaggerIn(
+                            child: _buildResumeCard(context, resume),
                           ),
-                        )
-                      else
-                        FlutterMap(
-                          mapController: _mapController,
-                          options: MapOptions(
-                            initialCenter: _myPosition ??
-                                (incidentPoints.isNotEmpty
-                                    ? incidentPoints.first
-                                    : const LatLng(12.9716, 77.5946)),
-                            initialZoom: 12,
-                          ),
-                          children: [
-                            TileLayer(
-                              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                              userAgentPackageName: 'com.signalaid.app',
+                        ),
+
+                      // ── Compact map: a glance, not the whole screen ──
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(
+                          16,
+                          resume != null ? 12 : 8,
+                          16,
+                          0,
+                        ),
+                        child: SizedBox(
+                          height: (MediaQuery.sizeOf(context).height * 0.26)
+                              .clamp(160.0, 260.0)
+                              .toDouble(),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(
+                              AppColors.radius,
                             ),
-                            MarkerLayer(
-                              markers: [
-                                ...incidentPoints.map((point) => Marker(
-                                      point: point,
-                                      width: 40,
-                                      height: 40,
-                                      child: _buildMapPin(
-                                          Icons.warning_rounded, Colors.red),
-                                    )),
+                            child: Stack(
+                              children: [
+                                if (_myPosition == null &&
+                                    incidentPoints.isEmpty)
+                                  Container(
+                                    color: AppColors.card,
+                                    alignment: Alignment.center,
+                                    child: const Padding(
+                                      padding: EdgeInsets.all(24),
+                                      child: Text(
+                                        'Waiting for your GPS position and the first verified incident…',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: AppColors.mutedForeground,
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                else
+                                  FlutterMap(
+                                    mapController: _mapController,
+                                    options: MapOptions(
+                                      initialCenter:
+                                          _myPosition ??
+                                          (incidentPoints.isNotEmpty
+                                              ? incidentPoints.first
+                                              : const LatLng(12.9716, 77.5946)),
+                                      initialZoom: 12,
+                                    ),
+                                    children: [
+                                      TileLayer(
+                                        urlTemplate:
+                                            'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                                        userAgentPackageName:
+                                            'com.signalaid.app',
+                                      ),
+                                      MarkerLayer(
+                                        markers: [
+                                          ...incidentPoints.map(
+                                            (point) => Marker(
+                                              point: point,
+                                              width: 40,
+                                              height: 40,
+                                              child: _buildMapPin(
+                                                Icons.warning_rounded,
+                                                Colors.red,
+                                              ),
+                                            ),
+                                          ),
+                                          if (_myPosition != null)
+                                            Marker(
+                                              point: _myPosition!,
+                                              width: 44,
+                                              height: 44,
+                                              child: _buildMapPin(
+                                                Icons.navigation,
+                                                AppColors.success,
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                Positioned(
+                                  top: 12,
+                                  left: 12,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: const Color(
+                                        0xFF0B0D12,
+                                      ).withValues(alpha: 0.75),
+                                      borderRadius: BorderRadius.circular(999),
+                                    ),
+                                    child: Text(
+                                      '${provider.incomingIncidents.length} verified incident(s)',
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ),
                                 if (_myPosition != null)
-                                  Marker(
-                                    point: _myPosition!,
-                                    width: 44,
-                                    height: 44,
-                                    child: _buildMapPin(
-                                        Icons.navigation, AppColors.success),
+                                  Positioned(
+                                    right: 12,
+                                    bottom: 12,
+                                    child: FloatingActionButton.small(
+                                      heroTag: 'recenter',
+                                      backgroundColor: AppColors.card,
+                                      foregroundColor: AppColors.foreground,
+                                      onPressed: () =>
+                                          _mapController.move(_myPosition!, 14),
+                                      child: const Icon(
+                                        Icons.my_location,
+                                        size: 18,
+                                      ),
+                                    ),
                                   ),
                               ],
                             ),
-                          ],
-                        ),
-                      Positioned(
-                        top: 12,
-                        left: 12,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF0B0D12).withValues(alpha: 0.75),
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                          child: Text(
-                            '${provider.incomingIncidents.length} verified incident(s)',
-                            style: const TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                            ),
                           ),
                         ),
                       ),
-                      if (_myPosition != null)
-                        Positioned(
-                          right: 12,
-                          bottom: 12,
-                          child: FloatingActionButton.small(
-                            heroTag: 'recenter',
-                            backgroundColor: AppColors.card,
-                            foregroundColor: AppColors.foreground,
-                            onPressed: () => _mapController.move(_myPosition!, 14),
-                            child: const Icon(Icons.my_location, size: 18),
-                          ),
-                        ),
-                    ],
-                  ),
-                        ),
-                      ),
-                    ),
 
-                    const SizedBox(height: 12),
+                      const SizedBox(height: 12),
 
-                    // ── Emergency request cards (animated in/out as jobs arrive or lock) ──
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 350),
-                      switchInCurve: Curves.easeOutQuad,
-                      transitionBuilder: (child, animation) => FadeTransition(
-                        opacity: animation,
-                        child: SlideTransition(
-                          position: Tween<Offset>(
-                            begin: const Offset(0, 0.12),
-                            end: Offset.zero,
-                          ).animate(animation),
-                          child: child,
+                      // ── Emergency request cards (animated in/out as jobs arrive or lock) ──
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 350),
+                        switchInCurve: Curves.easeOutQuad,
+                        transitionBuilder: (child, animation) => FadeTransition(
+                          opacity: animation,
+                          child: SlideTransition(
+                            position: Tween<Offset>(
+                              begin: const Offset(0, 0.12),
+                              end: Offset.zero,
+                            ).animate(animation),
+                            child: child,
+                          ),
                         ),
-                      ),
-                      child: provider.incomingIncidents.isEmpty
-                          ? const Center(
-                              key: ValueKey('empty'),
-                              child: Padding(
-                                padding: EdgeInsets.all(20),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(Icons.check_circle_outline,
-                                        size: 34, color: AppColors.success),
-                                    SizedBox(height: 10),
-                                    Text(
-                                      'All clear — no verified emergencies for your vehicle.',
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
+                        child: provider.incomingIncidents.isEmpty
+                            ? const Center(
+                                key: ValueKey('empty'),
+                                child: Padding(
+                                  padding: EdgeInsets.all(20),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.check_circle_outline,
+                                        size: 34,
+                                        color: AppColors.success,
+                                      ),
+                                      SizedBox(height: 10),
+                                      Text(
+                                        'All clear — no verified emergencies for your vehicle.',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
                                           fontSize: 13,
                                           fontWeight: FontWeight.w600,
                                           color: AppColors.foreground,
-                                          height: 1.6),
-                                    ),
-                                    SizedBox(height: 4),
-                                    Text(
-                                      'New requests appear here instantly.',
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                          fontSize: 12, color: AppColors.mutedForeground),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            )
-                          : Column(
-                              key: ValueKey(provider.incomingIncidents
-                                  .map((d) => d['id'])
-                                  .join(',')),
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                for (var i = 0;
-                                    i < provider.incomingIncidents.length;
-                                    i++)
-                                  StaggerIn.index(
-                                    index: i,
-                                    stepMs: 40,
-                                    maxDelayMs: 240,
-                                    child: _buildRequestCard(context, provider,
-                                        provider.incomingIncidents[i]),
+                                          height: 1.6,
+                                        ),
+                                      ),
+                                      SizedBox(height: 4),
+                                      Text(
+                                        'New requests appear here instantly.',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: AppColors.mutedForeground,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                              ],
-                            ),
-                    ),
-                  ],
+                                ),
+                              )
+                            : Column(
+                                key: ValueKey(
+                                  provider.incomingIncidents
+                                      .map((d) => d['id'])
+                                      .join(','),
+                                ),
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  for (
+                                    var i = 0;
+                                    i < provider.incomingIncidents.length;
+                                    i++
+                                  )
+                                    StaggerIn.index(
+                                      index: i,
+                                      stepMs: 40,
+                                      maxDelayMs: 240,
+                                      child: _buildRequestCard(
+                                        context,
+                                        provider,
+                                        provider.incomingIncidents[i],
+                                      ),
+                                    ),
+                                ],
+                              ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
       ),
     );
   }
@@ -531,7 +628,9 @@ class _DispatchScreenState extends State<DispatchScreen> {
   Widget _buildResumeCard(BuildContext context, Map<String, dynamic> trip) {
     final rawType = (trip['type'] ?? 'emergency').toString().toLowerCase();
     final isFire = rawType == 'fire';
-    final address = (trip['address'] ?? trip['description'] ?? 'Incident location').toString();
+    final address =
+        (trip['address'] ?? trip['description'] ?? 'Incident location')
+            .toString();
     final status = (trip['status'] ?? '').toString();
     final arrived = status.toLowerCase() == 'arrived';
 
@@ -548,7 +647,11 @@ class _DispatchScreenState extends State<DispatchScreen> {
                   color: Colors.red,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.emergency, size: 18, color: Colors.white),
+                child: const Icon(
+                  Icons.emergency,
+                  size: 18,
+                  color: Colors.white,
+                ),
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -593,11 +696,15 @@ class _DispatchScreenState extends State<DispatchScreen> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () => Navigator.pushNamed(context, '/response', arguments: {
-                'tripId': trip['id'].toString(),
-                'dispatch': trip,
-                'status': status.isEmpty ? 'en_route' : status,
-              }),
+              onPressed: () => Navigator.pushNamed(
+                context,
+                '/response',
+                arguments: {
+                  'tripId': trip['id'].toString(),
+                  'dispatch': trip,
+                  'status': status.isEmpty ? 'en_route' : status,
+                },
+              ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
@@ -606,8 +713,13 @@ class _DispatchScreenState extends State<DispatchScreen> {
                   borderRadius: BorderRadius.circular(AppColors.radius),
                 ),
               ),
-              child: const Text('RESUME RESPONSE',
-                  style: TextStyle(fontWeight: FontWeight.w800, letterSpacing: 1.2)),
+              child: const Text(
+                'RESUME RESPONSE',
+                style: TextStyle(
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1.2,
+                ),
+              ),
             ),
           ),
         ],
@@ -616,7 +728,10 @@ class _DispatchScreenState extends State<DispatchScreen> {
   }
 
   Widget _buildRequestCard(
-      BuildContext context, TripsProvider provider, Map<String, dynamic> dispatch) {
+    BuildContext context,
+    TripsProvider provider,
+    Map<String, dynamic> dispatch,
+  ) {
     final rawType = (dispatch['type'] ?? 'emergency').toString().toLowerCase();
     final isFire = rawType == 'fire';
     final title = isFire ? '🔥 FIRE' : '🚨 ACCIDENT';
@@ -649,7 +764,10 @@ class _DispatchScreenState extends State<DispatchScreen> {
                 ),
                 if (priority.isNotEmpty)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.accent.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(999),
@@ -732,7 +850,11 @@ class _DispatchScreenState extends State<DispatchScreen> {
             const SizedBox(height: 4),
             Text(
               'Location:\n$address',
-              style: const TextStyle(fontSize: 12, color: AppColors.mutedForeground, height: 1.5),
+              style: const TextStyle(
+                fontSize: 12,
+                color: AppColors.mutedForeground,
+                height: 1.5,
+              ),
             ),
             if (description.isNotEmpty) ...[
               const SizedBox(height: 4),
@@ -740,14 +862,20 @@ class _DispatchScreenState extends State<DispatchScreen> {
                 'Description:\n$description',
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 12, color: AppColors.foreground, height: 1.5),
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.foreground,
+                  height: 1.5,
+                ),
               ),
             ],
             const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: _accepting ? null : () => _acceptDispatch(context, provider, dispatch),
+                onPressed: _accepting
+                    ? null
+                    : () => _acceptDispatch(context, provider, dispatch),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red,
                   foregroundColor: Colors.white,
@@ -760,9 +888,18 @@ class _DispatchScreenState extends State<DispatchScreen> {
                     ? const SizedBox(
                         height: 16,
                         width: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : const Text('ACCEPT EMERGENCY',
-                        style: TextStyle(fontWeight: FontWeight.w800, letterSpacing: 1.2)),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text(
+                        'ACCEPT EMERGENCY',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
               ),
             ),
           ],
