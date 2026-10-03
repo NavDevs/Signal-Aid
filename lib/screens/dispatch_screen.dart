@@ -108,29 +108,32 @@ class _DispatchScreenState extends State<DispatchScreen> {
       final trip = await provider.acceptDispatch(dispatch['id'].toString());
       if (!mounted) return;
 
-      if (trip != null) {
-        final tripId = (trip['id'] ?? dispatch['id']).toString();
-        Navigator.pushNamed(
-          context,
-          '/response',
-          arguments: {
-            'tripId': tripId,
-            'dispatch': dispatch,
-            if (_myPosition != null) 'startLat': _myPosition!.latitude,
-            if (_myPosition != null) 'startLon': _myPosition!.longitude,
-          },
-        );
-      } else if (provider.lastAcceptError != null) {
-        // Only show snackbar for errors the driver can actually act on
-        // (e.g. "You are already on an active emergency").
-        // Stale-job 409s are silently cleaned up — no snackbar.
+      // If the driver is "already on an active emergency" — that's a real
+      // blocker, show the error and DON'T navigate.
+      if (trip == null && provider.lastAcceptError != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(provider.lastAcceptError!),
             backgroundColor: Colors.red,
           ),
         );
+        return;
       }
+
+      // Navigate to response screen — either with trip data from backend
+      // or with dispatch data as fallback (e.g. backend returned 409 for
+      // stale availability check that we've conceptually removed).
+      final tripId = (trip?['id'] ?? dispatch['id']).toString();
+      Navigator.pushNamed(
+        context,
+        '/response',
+        arguments: {
+          'tripId': tripId,
+          'dispatch': dispatch,
+          if (_myPosition != null) 'startLat': _myPosition!.latitude,
+          if (_myPosition != null) 'startLon': _myPosition!.longitude,
+        },
+      );
     } finally {
       if (mounted) {
         setState(() {

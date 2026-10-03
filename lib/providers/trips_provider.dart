@@ -756,6 +756,7 @@ class TripsProvider with ChangeNotifier {
           )
           .timeout(_requestTimeout);
 
+      debugPrint('[acceptDispatch] status=${response.statusCode} body=${response.body}');
       _guard(response);
 
       if (response.statusCode == 200) {
