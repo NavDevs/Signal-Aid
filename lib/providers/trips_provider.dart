@@ -160,6 +160,29 @@ class TripsProvider with ChangeNotifier {
     }
   }
 
+  Future<File?> _activeTripFile() async {
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      return File('${dir.path}/signalaid_active_trip.json');
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<void> _persistActiveTrip() async {
+    try {
+      final file = await _activeTripFile();
+      if (file == null) return;
+      if (_activeTrip == null) {
+        if (await file.exists()) await file.delete();
+      } else {
+        await file.writeAsString(json.encode(_activeTrip), flush: true);
+      }
+    } catch (e) {
+      debugPrint('[Session] Active trip storage error: $e');
+    }
+  }
+
   /// Boot-time guard against server data wipes.
   ///
   /// /health exposes a `dataEpoch` counter that bumps whenever the admin resets
@@ -363,6 +386,20 @@ class TripsProvider with ChangeNotifier {
   /// doesn't wipe a valid resume card.
   Future<void> restoreActiveTrip() async {
     if (_driver == null) return;
+    
+    // Load local fallback coordinates before polling the backend
+    try {
+      final file = await _activeTripFile();
+      if (file != null && await file.exists()) {
+        final decoded = json.decode(await file.readAsString());
+        if (decoded is Map && decoded.isNotEmpty) {
+          _activeTrip = Map<String, dynamic>.from(decoded);
+        }
+      }
+    } catch (e) {
+      debugPrint('[Session] Active trip local load error: $e');
+    }
+    
     try {
       final response = await http
           .get(Uri.parse('$baseUrl/api/trips/active/${_driver!.backendId}'),
@@ -371,12 +408,21 @@ class TripsProvider with ChangeNotifier {
       _guard(response);
       if (response.statusCode != 200) return;
       final data = json.decode(response.body);
-      final trip =
+      final fetchedTrip =
           (data is Map && data.isNotEmpty) ? Map<String, dynamic>.from(data) : null;
-      final changed = (trip == null) != (_activeTrip == null) ||
-          (trip != null && trip['id']?.toString() != _activeTrip?['id']?.toString());
-      _activeTrip = trip;
+          
+      final changed = (fetchedTrip == null) != (_activeTrip == null) ||
+          (fetchedTrip != null && fetchedTrip['id']?.toString() != _activeTrip?['id']?.toString());
+          
+      if (fetchedTrip != null && _activeTrip != null && fetchedTrip['id'] == _activeTrip!['id']) {
+        // Merge to preserve latitude/longitude which the old backend omitted
+        _activeTrip = {..._activeTrip!, ...fetchedTrip};
+      } else {
+        _activeTrip = fetchedTrip;
+      }
+      
       if (changed) notifyListeners();
+      await _persistActiveTrip();
     } catch (e) {
       debugPrint('[Session] Active trip restore error: $e');
     }
@@ -781,6 +827,7 @@ class TripsProvider with ChangeNotifier {
         // before the first refresh replaces it with the joined backend row.
         _activeTrip = {...?_currentDispatch, ...accepted};
         notifyListeners();
+        await _persistActiveTrip();
         return accepted;
       }
 
@@ -819,6 +866,7 @@ class TripsProvider with ChangeNotifier {
     _currentDispatch = null;
     _activeTrip = null;
     notifyListeners();
+    _persistActiveTrip();
   }
 
   /// Last position the backend stored for this driver, for screens that need

@@ -63,6 +63,7 @@ class _DispatchScreenState extends State<DispatchScreen> {
           final position = await Geolocator.getCurrentPosition(
             locationSettings: const LocationSettings(
               accuracy: LocationAccuracy.high,
+              timeLimit: Duration(seconds: 5),
             ),
           );
           if (mounted) {

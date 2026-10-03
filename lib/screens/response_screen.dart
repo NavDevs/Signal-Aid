@@ -97,7 +97,11 @@ class _ResponseScreenState extends State<ResponseScreen> {
     final rawDispatch = args?['dispatch'];
     if (rawDispatch is Map) {
       _dispatch = Map<String, dynamic>.from(rawDispatch);
-      _incident = _latLngFrom(_dispatch!['latitude'], _dispatch!['longitude']);
+      _incident = _latLngFrom(
+        _dispatch!['latitude'], 
+        _dispatch!['longitude'], 
+        address: _dispatch!['address'] ?? _dispatch!['description']
+      );
     }
 
     // Journey start passed from the dispatch screen (ambulance bay / hospital).
@@ -120,11 +124,23 @@ class _ResponseScreenState extends State<ResponseScreen> {
     }
   }
 
-  static LatLng? _latLngFrom(dynamic latitude, dynamic longitude) {
+  static LatLng? _latLngFrom(dynamic latitude, dynamic longitude, {dynamic address}) {
     final lat = double.tryParse('${latitude ?? ''}');
     final lon = double.tryParse('${longitude ?? ''}');
-    if (lat == null || lon == null) return null;
-    return LatLng(lat, lon);
+    if (lat != null && lon != null) return LatLng(lat, lon);
+
+    // Fallback: Roadly sometimes stores coordinates in the address or description field
+    if (address != null) {
+      final str = address.toString();
+      final regex = RegExp(r'([0-9]+\.[0-9]+),\s*([0-9]+\.[0-9]+)');
+      final match = regex.firstMatch(str);
+      if (match != null) {
+        final fLat = double.tryParse(match.group(1)!);
+        final fLon = double.tryParse(match.group(2)!);
+        if (fLat != null && fLon != null) return LatLng(fLat, fLon);
+      }
+    }
+    return null;
   }
 
   /// Live GPS: the driver position is what the map draws the route from.
@@ -151,7 +167,7 @@ class _ResponseScreenState extends State<ResponseScreen> {
         }
 
         final position = await Geolocator.getCurrentPosition(
-          locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+          locationSettings: const LocationSettings(accuracy: LocationAccuracy.high, timeLimit: Duration(seconds: 5)),
         );
         if (!mounted) return;
 
@@ -804,12 +820,7 @@ class _ResponseScreenState extends State<ResponseScreen> {
                         ],
                       ),
                     ),
-                    IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.close, size: 18, color: Colors.white),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
+                    // Close button removed — driver must complete the response
                   ],
                 ),
               ),
