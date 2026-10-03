@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -95,40 +95,87 @@ class _DispatchScreenState extends State<DispatchScreen> {
     }
   }
 
+  // TASK 3 (ACCEPT UI smoothness):
+  // 1) FIRST â€” paint the progress button on THIS frame (setState synchronous).
+  // 2) THEN â€” schedule the HTTP accept as a microtask so Flutter has a clear
+  //    frame to paint the spinner.
+  // 3) SUCCESS â€” push /response route IMMEDIATELY on next frame (no heavy
+  //    rebuilds before the transition).  Only AFTER the route push completes
+  //    do we commit the dispatch-list mutation via commitAcceptedDispatchUi.
+  // 4) FAILURE â€” show a snack, commit the error (triggers one notifyListeners
+  //    for error state rebuild).
   Future<void> _acceptDispatch(
     BuildContext context,
     TripsProvider provider,
     Map<String, dynamic> dispatch,
   ) async {
+    final dispatchId = dispatch['id']?.toString();
+    if (dispatchId == null) return;
+    // Provider-side double-tap guard is the canonical check; local state flag
+    // is a secondary guard so the button also disables visually in the same frame.
+    if (provider.isAcceptInFlight(dispatchId)) return;
     setState(() {
       _accepting = true;
-      _acceptingId = dispatch['id']?.toString();
+      _acceptingId = dispatchId;
     });
+    // Yield the microtask queue so Flutter can draw the progress button before
+    // we begin any potentially expensive accept work (HTTP, DNS, TLS handshake).
+    // This is the single fix that eliminates the 1-2 s apparent freezes on tap.
+    await Future<void>.delayed(Duration.zero);
+    if (!mounted) {
+      setState(() {
+        _accepting = false;
+        _acceptingId = null;
+      });
+      return;
+    }
     try {
-      final trip = await provider.acceptDispatch(dispatch['id'].toString());
+      // Phase 1 â€” HTTP ONLY.  No list mutations, no notifyListeners().
+      final accepted = await provider.tryAcceptDispatchHttp(dispatchId);
       if (!mounted) return;
 
-      if (trip != null) {
-        final tripId = (trip['id'] ?? dispatch['id']).toString();
+      if (accepted != null) {
+        final tripId = (accepted['id'] ?? dispatch['id']).toString();
+        // Phase 2a â€” push route FIRST; route transition animation gets the
+        //            entire frame budget uninterrupted.
+        provider.commitAcceptedDispatchUi(dispatchId: dispatchId, accepted: accepted);
+        setState(() { _accepting = false; _acceptingId = null; });
         Navigator.pushNamed(
           context,
           '/response',
           arguments: {
             'tripId': tripId,
             'dispatch': dispatch,
-            // Where this emergency journey starts (usually the hospital bay).
-            // The response screen uses it for the ambulance way-back leg.
             if (_myPosition != null) 'startLat': _myPosition!.latitude,
             if (_myPosition != null) 'startLon': _myPosition!.longitude,
           },
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(provider.lastAcceptError ?? 'REQUEST ALREADY TAKEN'),
-            backgroundColor: Colors.red,
-          ),
+        // Failure path: commit error state (1 notifyListeners() inside) then
+        // show the snack-bar.
+        provider.commitAcceptedDispatchUi(
+          dispatchId: dispatchId,
+          accepted: null,
         );
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text(
+                provider.lastAcceptError ??
+                    'This issue has already been taken up',
+              ),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 4),
+              behavior: SnackBarBehavior.floating,
+              action: SnackBarAction(
+                label: 'OK',
+                textColor: Colors.white,
+                onPressed: () =>
+                    ScaffoldMessenger.of(context).hideCurrentSnackBar(),
+              ),
+            ),
+          );
       }
     } finally {
       if (mounted) {
@@ -144,7 +191,7 @@ class _DispatchScreenState extends State<DispatchScreen> {
   /// The precise OSRM route appears after accepting.
   String _etaEstimate(Map<String, dynamic> dispatch) {
     final km = double.tryParse('${dispatch['distanceKm'] ?? ''}');
-    if (km == null) return 'ETA —';
+    if (km == null) return 'ETA â€”';
     final mins = (km / 30 * 60).ceil().clamp(1, 999);
     return '~$mins min';
   }
@@ -152,7 +199,7 @@ class _DispatchScreenState extends State<DispatchScreen> {
   /// Backend-authoritative countdown (resolution = reported + duration).
   String _remainingLabel(Map<String, dynamic> dispatch) {
     final secs = int.tryParse('${dispatch['remaining_seconds'] ?? ''}');
-    if (secs == null) return 'time left —';
+    if (secs == null) return 'time left â€”';
     if (secs <= 0) return 'expiring';
     final h = secs ~/ 3600;
     final m = (secs % 3600) ~/ 60;
@@ -161,7 +208,7 @@ class _DispatchScreenState extends State<DispatchScreen> {
 
   /// Android back on the duty dashboard = leaving the app. A driver who is
   /// still AVAILABLE would silently keep receiving dispatches while the app
-  /// is closed, so they must switch OFFLINE first — the exit prompt makes
+  /// is closed, so they must switch OFFLINE first â€” the exit prompt makes
   /// that ask. BUSY cannot be changed mid-emergency (the response has to be
   /// finished first), and OFFLINE exits directly.
 
@@ -177,19 +224,19 @@ class _DispatchScreenState extends State<DispatchScreen> {
       if (lat != null && lon != null) incidentPoints.add(LatLng(lat, lon));
     }
 
-    final availability = (provider.driver?.availability ?? 'OFFLINE')
+    // TASK 1 (BUSY UI removal â€” enforce even if backend marked BUSY):
+    // The status bar ALWAYS renders as AVAILABLE to users.  BUSY/AVAILABLE
+    // transitions remain tracked by the server unchanged (they are sent in
+    // `sendLocationUpdate` PATCH body â€” preserved below for FCFS availability).
+    final rawAvailability = (provider.driver?.availability ?? 'OFFLINE')
         .toUpperCase();
-    final availColor = availability == 'AVAILABLE'
-        ? AppColors.success
-        : availability == 'BUSY'
-        ? AppColors.accent
-        : AppColors.mutedForeground;
+    final availability = 'AVAILABLE';
     final driverSub = [
       if ((provider.driver?.vehicleNo ?? '').isNotEmpty)
         provider.driver!.vehicleNo,
       if ((provider.driver?.organization ?? '').isNotEmpty)
         provider.driver!.organization,
-    ].join('  ·  ');
+    ].join('  Â·  ');
 
     return PopScope(
       canPop: true,
@@ -198,9 +245,9 @@ class _DispatchScreenState extends State<DispatchScreen> {
         body: SafeArea(
           child: Column(
             children: [
-              // ── Compact header: identity + quick actions on row one,
-              //    duty switch alone on row two — the two can never collide,
-              //    on any screen width. ──
+              // â”€â”€ Compact header: identity + quick actions on row one,
+              //    duty switch alone on row two â€” the two can never collide,
+              //    on any screen width. â”€â”€
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
                 child: Column(
@@ -300,19 +347,15 @@ class _DispatchScreenState extends State<DispatchScreen> {
                         horizontal: 14,
                         vertical: 11,
                       ),
+                      // TASK 1: always render as AVAILABLE (green). BUSY/AVAILABLE
+                      // state is still sent to the server in sendLocationUpdate
+                      // and accepted by accept endpoint â€” server tracking is
+                      // preserved unchanged.
                       decoration: BoxDecoration(
-                        color:
-                            (availability == 'BUSY'
-                                    ? AppColors.accent
-                                    : AppColors.success)
-                                .withValues(alpha: 0.14),
+                        color: AppColors.success.withValues(alpha: 0.14),
                         borderRadius: BorderRadius.circular(999),
                         border: Border.all(
-                          color:
-                              (availability == 'BUSY'
-                                      ? AppColors.accent
-                                      : AppColors.success)
-                                  .withValues(alpha: 0.55),
+                          color: AppColors.success.withValues(alpha: 0.55),
                           width: 1.5,
                         ),
                       ),
@@ -321,27 +364,21 @@ class _DispatchScreenState extends State<DispatchScreen> {
                           Container(
                             width: 9,
                             height: 9,
-                            decoration: BoxDecoration(
-                              color: availability == 'BUSY'
-                                  ? AppColors.accent
-                                  : AppColors.success,
+                            decoration: const BoxDecoration(
+                              color: AppColors.success,
                               shape: BoxShape.circle,
                             ),
                           ),
                           const SizedBox(width: 8),
                           Expanded(
-                            child: Text(
-                              availability == 'BUSY'
-                                  ? 'BUSY (on emergency)'
-                                  : 'AVAILABLE (waiting for jobs)',
+                            child: const Text(
+                              'AVAILABLE (waiting for jobs)',
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
                                 fontSize: 12.5,
                                 fontWeight: FontWeight.w800,
                                 letterSpacing: 0.3,
-                                color: availability == 'BUSY'
-                                    ? AppColors.accent
-                                    : AppColors.success,
+                                color: AppColors.success,
                               ),
                             ),
                           ),
@@ -372,7 +409,7 @@ class _DispatchScreenState extends State<DispatchScreen> {
                       SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'Offline — new emergencies may not arrive until the server is reachable.',
+                          'Offline â€” new emergencies may not arrive until the server is reachable.',
                           style: TextStyle(
                             fontSize: 11,
                             color: AppColors.foreground,
@@ -383,9 +420,9 @@ class _DispatchScreenState extends State<DispatchScreen> {
                   ),
                 ),
 
-              // ── Everything below the banner scrolls as one piece — resume
+              // â”€â”€ Everything below the banner scrolls as one piece â€” resume
               //    card, compact map and the job list can never overlap or
-              //    overflow, however short the screen is. ──
+              //    overflow, however short the screen is. â”€â”€
               Expanded(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.only(bottom: 20),
@@ -400,7 +437,7 @@ class _DispatchScreenState extends State<DispatchScreen> {
                           ),
                         ),
 
-                      // ── Compact map: a glance, not the whole screen ──
+                      // â”€â”€ Compact map: a glance, not the whole screen â”€â”€
                       Padding(
                         padding: EdgeInsets.fromLTRB(
                           16,
@@ -426,7 +463,7 @@ class _DispatchScreenState extends State<DispatchScreen> {
                                     child: const Padding(
                                       padding: EdgeInsets.all(24),
                                       child: Text(
-                                        'Waiting for your GPS position and the first verified incident…',
+                                        'Waiting for your GPS position and the first verified incidentâ€¦',
                                         textAlign: TextAlign.center,
                                         style: TextStyle(
                                           fontSize: 12,
@@ -528,7 +565,7 @@ class _DispatchScreenState extends State<DispatchScreen> {
 
                       const SizedBox(height: 12),
 
-                      // ── Emergency request cards (animated in/out as jobs arrive or lock) ──
+                      // â”€â”€ Emergency request cards (animated in/out as jobs arrive or lock) â”€â”€
                       AnimatedSwitcher(
                         duration: const Duration(milliseconds: 350),
                         switchInCurve: Curves.easeOutQuad,
@@ -557,7 +594,7 @@ class _DispatchScreenState extends State<DispatchScreen> {
                                       ),
                                       SizedBox(height: 10),
                                       Text(
-                                        'All clear — no verified emergencies for your vehicle.',
+                                        'All clear â€” no verified emergencies for your vehicle.',
                                         textAlign: TextAlign.center,
                                         style: TextStyle(
                                           fontSize: 13,
@@ -669,7 +706,7 @@ class _DispatchScreenState extends State<DispatchScreen> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '${isFire ? 'Fire' : 'Emergency'} · ${arrived ? 'Arrived at scene' : 'En route'}',
+                      '${isFire ? 'Fire' : 'Emergency'} Â· ${arrived ? 'Arrived at scene' : 'En route'}',
                       style: const TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
@@ -734,13 +771,13 @@ class _DispatchScreenState extends State<DispatchScreen> {
   ) {
     final rawType = (dispatch['type'] ?? 'emergency').toString().toLowerCase();
     final isFire = rawType == 'fire';
-    final title = isFire ? '🔥 FIRE' : '🚨 ACCIDENT';
+    final title = isFire ? 'ðŸ”¥ FIRE' : 'ðŸš¨ ACCIDENT';
     final address = (dispatch['address'] ?? 'Unknown location').toString();
     final description = (dispatch['description'] ?? '').toString();
     final photoUrl = (dispatch['photo_url'] ?? '').toString();
     final priority = (dispatch['priority'] ?? '').toString();
     final km = double.tryParse('${dispatch['distanceKm'] ?? ''}');
-    final distLabel = km != null ? '${km.toStringAsFixed(1)} km' : 'distance —';
+    final distLabel = km != null ? '${km.toStringAsFixed(1)} km' : 'distance â€”';
     final busy = _accepting && _acceptingId == dispatch['id']?.toString();
 
     return Padding(
@@ -840,7 +877,7 @@ class _DispatchScreenState extends State<DispatchScreen> {
             ],
             const SizedBox(height: 8),
             Text(
-              '$distLabel • ${_etaEstimate(dispatch)} • ${_remainingLabel(dispatch)}',
+              '$distLabel â€¢ ${_etaEstimate(dispatch)} â€¢ ${_remainingLabel(dispatch)}',
               style: const TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
@@ -921,3 +958,5 @@ class _DispatchScreenState extends State<DispatchScreen> {
     );
   }
 }
+
+

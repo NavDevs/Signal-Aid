@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'providers/trips_provider.dart';
@@ -13,12 +13,12 @@ import 'screens/splash_screen.dart';
 import 'screens/approval_pending_screen.dart';
 import 'screens/profile_screen.dart';
 import 'utils/app_colors.dart';
-import 'services/notification_service.dart';
+
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // Initialize notification service (foreground + background polling)
-  await NotificationService.instance.init();
+
+
   runApp(const SignalAidApp());
 }
 
@@ -68,7 +68,7 @@ class SignalAidApp extends StatelessWidget {
   }
 }
 
-/// S0 — decides which screen the driver belongs on.
+/// S0 â€” decides which screen the driver belongs on.
 ///
 /// The backend drives this: an approved session reaches the duty dashboard, a
 /// pending or rejected registration is parked on the approval screen, and an

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Full backup is enabled; keep alarm state + SharedPreferences including
+     notif_* keys (which store the dedup set, creds, and last-run timestamp). -->
+<full-backup-content>
+    <include domain="sharedpref" path="."/>
+    <exclude domain="sharedpref" path="FlutterSharedPreferences.xml"/>
+</full-backup-content>
