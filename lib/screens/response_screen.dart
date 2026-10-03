@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -463,6 +463,7 @@ class _ResponseScreenState extends State<ResponseScreen> {
   @override
   void dispose() {
     _locationTimer?.cancel();
+    _mapController.dispose();
     super.dispose();
   }
 

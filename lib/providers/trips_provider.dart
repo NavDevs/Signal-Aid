@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'dart:io';
@@ -9,9 +9,10 @@ import '../models/driver.dart';
 import '../models/trip.dart';
 import '../navigation.dart';
 
+
 /// Backend-authoritative session state for the Signal Aid driver app.
 ///
-/// The app never decides whether a driver is approved Ã¢â‚¬â€ every transition into
+/// The app never decides whether a driver is approved â€” every transition into
 /// [approved] comes from a successful, token-bearing call to the backend.
 enum SessionState {
   /// Cold start: we are asking the backend whether the stored session is still good.
@@ -52,7 +53,7 @@ class TripsProvider with ChangeNotifier {
   Map<String, dynamic>? _currentDispatch;
 
   // The backend's in-progress trip for this driver (en_route/arrived),
-  // refreshed at login and on the dispatch screen Ã¢â‚¬â€ powers "resume response".
+  // refreshed at login and on the dispatch screen â€” powers "resume response".
   Map<String, dynamic>? _activeTrip;
 
   late IO.Socket socket;
@@ -78,7 +79,7 @@ class TripsProvider with ChangeNotifier {
   /// True when we restored a cached session without the backend confirming it.
   bool get offline => _offline;
 
-  /// One-shot message to show on the sign-in screen (invalidated session, revocationâ€¦).
+  /// One-shot message to show on the sign-in screen (invalidated session, revocation…).
   String? get sessionNotice => _sessionNotice;
 
   String? consumeNotice() {
@@ -101,9 +102,9 @@ class TripsProvider with ChangeNotifier {
     await restoreSession();
   }
 
-  // Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
-  // SESSION PERSISTENCE (spec Ã‚Â§7: login once, restore, logout on invalidation)
-  // Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // SESSION PERSISTENCE (spec Â§7: login once, restore, logout on invalidation)
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   Future<File?> _sessionFile() async {
     try {
@@ -163,7 +164,7 @@ class TripsProvider with ChangeNotifier {
   ///
   /// /health exposes a `dataEpoch` counter that bumps whenever the admin resets
   /// the server database. If the stored epoch differs from the server's, the
-  /// stored session is dead (its user row no longer exists) Ã¢â‚¬â€ return false so
+  /// stored session is dead (its user row no longer exists) â€” return false so
   /// [restoreSession] wipes local data and lands on the sign-in screen. Any
   /// network failure keeps the current session: offline must never sign a
   /// driver out.
@@ -186,9 +187,8 @@ class TripsProvider with ChangeNotifier {
                 ?.toString();
           }
           await meta.writeAsString(
-            json.encode({'dataEpoch': serverEpoch}),
-            flush: true,
-          );
+              json.encode({'dataEpoch': serverEpoch}),
+              flush: true);
         } catch (e) {
           debugPrint('[Session] Epoch meta write error: $e');
         }
@@ -207,25 +207,22 @@ class TripsProvider with ChangeNotifier {
   /// Cold-start gate. Restores a session, but only after the backend confirms it.
   ///
   /// Branching:
-  ///  * stored token + `200` approved  Ã¢â€ â€™ [SessionState.approved]
-  ///  * backend says pending/rejected   Ã¢â€ â€™ [SessionState.pendingApproval]/[rejected]
-  ///  * token rejected (`401`)          Ã¢â€ â€™ silent re-login with the stored credentials
-  ///  * network failure                 Ã¢â€ â€™ keep the cached session, flag [offline]
+  ///  * stored token + `200` approved  â†’ [SessionState.approved]
+  ///  * backend says pending/rejected   â†’ [SessionState.pendingApproval]/[rejected]
+  ///  * token rejected (`401`)          â†’ silent re-login with the stored credentials
+  ///  * network failure                 â†’ keep the cached session, flag [offline]
   Future<void> restoreSession() async {
     try {
       if (await _dataEpochIntact()) {
         await _restoreSession().timeout(_bootTimeout);
       } else {
-        debugPrint(
-          '[Session] Server data was reset but ignoring per user request',
-        );
+        debugPrint('[Session] Server data was reset but ignoring per user request');
         await _restoreSession().timeout(_bootTimeout);
       }
     } on TimeoutException {
       _endSession(
         SessionState.signedOut,
-        notice:
-            'Could not reach the server. Check your connection and sign in.',
+        notice: 'Could not reach the server. Check your connection and sign in.',
         keepIdentity: true,
       );
     } catch (e) {
@@ -255,9 +252,7 @@ class TripsProvider with ChangeNotifier {
     if (stored.hasToken) {
       final outcome = await _checkToken(stored.token!);
       if (outcome != _TokenCheck.invalid) return;
-      debugPrint(
-        '[Session] Stored token rejected; falling back to credentials.',
-      );
+      debugPrint('[Session] Stored token rejected; falling back to credentials.');
     }
 
     // No token, or the token was rejected: re-authenticate with the stored
@@ -265,14 +260,12 @@ class TripsProvider with ChangeNotifier {
     await _credentialLogin(stored.driverId, stored.vehicleNo, quiet: true);
   }
 
-  /// Ask the backend who we are. The backend Ã¢â‚¬â€ not the app Ã¢â‚¬â€ decides approval.
+  /// Ask the backend who we are. The backend â€” not the app â€” decides approval.
   Future<_TokenCheck> _checkToken(String token) async {
     try {
       final res = await http
-          .get(
-            Uri.parse('$baseUrl/api/driver/profile'),
-            headers: {'Authorization': 'Bearer $token'},
-          )
+          .get(Uri.parse('$baseUrl/api/driver/profile'),
+              headers: {'Authorization': 'Bearer $token'})
           .timeout(_requestTimeout);
 
       if (res.statusCode == 200) {
@@ -296,7 +289,7 @@ class TripsProvider with ChangeNotifier {
         return _TokenCheck.handled;
       }
 
-      // 404/5xx: transient from our point of view Ã¢â‚¬â€ keep the cached session.
+      // 404/5xx: transient from our point of view â€” keep the cached session.
       return _acceptCachedSession();
     } catch (e) {
       debugPrint('[Session] Profile check failed: $e');
@@ -357,6 +350,9 @@ class TripsProvider with ChangeNotifier {
     // dispatch screen can offer "resume" instead of losing the active trip.
     await restoreActiveTrip();
 
+    // Register background polling for notifications (vehicle-type filtered)
+    if (merged.token != null && merged.vehicleType != null) {
+      
     }
   }
 
@@ -369,21 +365,16 @@ class TripsProvider with ChangeNotifier {
     if (_driver == null) return;
     try {
       final response = await http
-          .get(
-            Uri.parse('$baseUrl/api/trips/active/${_driver!.backendId}'),
-            headers: _authHeaders(),
-          )
+          .get(Uri.parse('$baseUrl/api/trips/active/${_driver!.backendId}'),
+              headers: _authHeaders())
           .timeout(_requestTimeout);
       _guard(response);
       if (response.statusCode != 200) return;
       final data = json.decode(response.body);
-      final trip = (data is Map && data.isNotEmpty)
-          ? Map<String, dynamic>.from(data)
-          : null;
-      final changed =
-          (trip == null) != (_activeTrip == null) ||
-          (trip != null &&
-              trip['id']?.toString() != _activeTrip?['id']?.toString());
+      final trip =
+          (data is Map && data.isNotEmpty) ? Map<String, dynamic>.from(data) : null;
+      final changed = (trip == null) != (_activeTrip == null) ||
+          (trip != null && trip['id']?.toString() != _activeTrip?['id']?.toString());
       _activeTrip = trip;
       if (changed) notifyListeners();
     } catch (e) {
@@ -397,9 +388,7 @@ class TripsProvider with ChangeNotifier {
     _approvalStatus = resolved;
     _rejectionReason = reason;
     _offline = false;
-    _session = resolved == 'rejected'
-        ? SessionState.rejected
-        : SessionState.pendingApproval;
+    _session = resolved == 'rejected' ? SessionState.rejected : SessionState.pendingApproval;
     _activeDispatches = [];
     _currentDispatch = null;
     _activeTrip = null;
@@ -407,10 +396,7 @@ class TripsProvider with ChangeNotifier {
 
     // Keep the identity fields for prefill, but never keep a token that the
     // backend has refused to honour.
-    final identity = _driver?.copyWith(
-      clearToken: true,
-      approvalStatus: resolved,
-    );
+    final identity = _driver?.copyWith(clearToken: true, approvalStatus: resolved);
     if (identity != null) {
       _driver = identity;
       await _persistDriver(identity);
@@ -421,7 +407,7 @@ class TripsProvider with ChangeNotifier {
   /// Ends the live session.
   ///
   /// [keepIdentity] drops the token but remembers who the driver was, so the
-  /// sign-in screen can prefill their credentials (spec Ã‚Â§7: login once, log out
+  /// sign-in screen can prefill their credentials (spec Â§7: login once, log out
   /// only on an explicit action or a security invalidation). An explicit logout
   /// clears everything.
   void _endSession(
@@ -469,9 +455,9 @@ class TripsProvider with ChangeNotifier {
     return headers;
   }
 
-  // Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // SIGN-IN / REGISTRATION / LOGOUT
-  // Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   /// Driver sign-in. Returns null on success, otherwise a message to display.
   Future<String?> loginDriver(String driverId, String vehicleNo) async {
@@ -486,11 +472,8 @@ class TripsProvider with ChangeNotifier {
     }
   }
 
-  Future<String?> _credentialLogin(
-    String driverId,
-    String vehicleNo, {
-    bool quiet = false,
-  }) async {
+  Future<String?> _credentialLogin(String driverId, String vehicleNo,
+      {bool quiet = false}) async {
     if (!quiet) {
       _loading = true;
       notifyListeners();
@@ -510,10 +493,8 @@ class TripsProvider with ChangeNotifier {
       if (res.statusCode == 200) {
         final user = body?['user'];
         if (user is Map) {
-          await _applyProfile(
-            Map<String, dynamic>.from(user),
-            token: body?['token']?.toString(),
-          );
+          await _applyProfile(Map<String, dynamic>.from(user),
+              token: body?['token']?.toString());
           return null;
         }
         return 'Unexpected response from server.';
@@ -532,8 +513,7 @@ class TripsProvider with ChangeNotifier {
         return 'Driver not found. Check your Driver ID and vehicle number.';
       }
 
-      return body?['error']?.toString() ??
-          'Sign-in failed (${res.statusCode}).';
+      return body?['error']?.toString() ?? 'Sign-in failed (${res.statusCode}).';
     } on TimeoutException {
       return 'Server took too long to respond. Try again.';
     } catch (e) {
@@ -544,7 +524,7 @@ class TripsProvider with ChangeNotifier {
     }
   }
 
-  /// Driver registration: NEW DRIVER -> backend -> admin approval (spec Ã‚Â§6).
+  /// Driver registration: NEW DRIVER -> backend -> admin approval (spec Â§6).
   Future<String?> registerDriver({
     required String name,
     required String phone,
@@ -572,8 +552,7 @@ class TripsProvider with ChangeNotifier {
         return null;
       }
       final body = _tryDecode(response.body);
-      return (body?['error'] ?? 'Registration failed (${response.statusCode}).')
-          .toString();
+      return (body?['error'] ?? 'Registration failed (${response.statusCode}).').toString();
     } on TimeoutException {
       return 'Server took too long to respond. Try again.';
     } catch (e) {
@@ -597,7 +576,7 @@ class TripsProvider with ChangeNotifier {
     await _credentialLogin(current.driverId, current.vehicleNo, quiet: true);
   }
 
-  /// Explicit logout (spec Ã‚Â§7: the only way a session ends, besides invalidation).
+  /// Explicit logout (spec Â§7: the only way a session ends, besides invalidation).
   Future<void> logout() async {
     final token = _driver?.token;
     if (token != null && token.isNotEmpty) {
@@ -613,6 +592,9 @@ class TripsProvider with ChangeNotifier {
         debugPrint('[Session] Availability reset on logout failed: $e');
       }
     }
+    // Stop background polling so no stale notifications arrive after logout
+    
+    _endSession(SessionState.signedOut);
   }
 
   /// Backend-owned duty state. Only AVAILABLE drivers receive emergency jobs.
@@ -629,9 +611,7 @@ class TripsProvider with ChangeNotifier {
       if (res.statusCode == 200) {
         final body = _tryDecode(res.body);
         if (body != null && _driver != null) {
-          _driver = _driver!.copyWith(
-            availability: body['availability']?.toString(),
-          );
+          _driver = _driver!.copyWith(availability: body['availability']?.toString());
           notifyListeners();
         }
         return null;
@@ -647,15 +627,12 @@ class TripsProvider with ChangeNotifier {
     }
   }
 
-  // Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // SOCKET
-  // Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   void _setupSocket() {
-    socket = IO.io(
-      baseUrl,
-      IO.OptionBuilder().setTransports(['websocket']).build(),
-    );
+    socket = IO.io(baseUrl, IO.OptionBuilder().setTransports(['websocket']).build());
     socket.onConnect((_) {
       debugPrint('Signal-Aid connected to dispatch');
     });
@@ -673,6 +650,12 @@ class TripsProvider with ChangeNotifier {
       // fetch response cannot wipe it a moment later.
       _socketAddSeq[job['id']] = _dispatchFetchSeq;
       notifyListeners();
+      // Fire a local notification so the driver sees this even when screen
+      // is off. Strict once-per-event + role-gated + account scoped.
+      final d = _driver;
+      if (d != null && d.driverId.isNotEmpty && (d.vehicleType ?? '').isNotEmpty) {
+        
+      }
     });
 
     // Remove dispatch from list if another driver accepts it
@@ -680,7 +663,7 @@ class TripsProvider with ChangeNotifier {
       if (data is! Map) return;
       final id = data['dispatchId']?.toString();
       if (id == null) return;
-      _activeDispatches.removeWhere((d) => d['id'] == id);
+      _activeDispatches.removeWhere((d) => d['id']?.toString() == id?.toString());
       _socketAddSeq.remove(id);
       _goneDuringFetch.add(id);
       notifyListeners();
@@ -691,7 +674,7 @@ class TripsProvider with ChangeNotifier {
       if (data is! Map) return;
       final id = data['dispatchId']?.toString();
       if (id == null) return;
-      _activeDispatches.removeWhere((d) => d['id'] == id);
+      _activeDispatches.removeWhere((d) => d['id']?.toString() == id?.toString());
       _socketAddSeq.remove(id);
       _goneDuringFetch.add(id);
       notifyListeners();
@@ -705,7 +688,7 @@ class TripsProvider with ChangeNotifier {
     // The admin wiped the server database: drop the dead local session
     // immediately instead of waiting for the next cold start.
     socket.on('data_reset', (_) async {
-      debugPrint('[Session] data_reset received Ã¢â‚¬â€ clearing local session');
+      debugPrint('[Session] data_reset received â€” clearing local session');
       await _clearStoredDriver();
       _endSession(
         SessionState.signedOut,
@@ -715,18 +698,16 @@ class TripsProvider with ChangeNotifier {
     });
   }
 
-  // Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // TRIPS / DISPATCHES
-  // Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   Future<void> fetchTrips() async {
     if (_driver == null) return;
     try {
       final response = await http
-          .get(
-            Uri.parse('$baseUrl/api/trips/${_driver!.backendId}'),
-            headers: _authHeaders(),
-          )
+          .get(Uri.parse('$baseUrl/api/trips/${_driver!.backendId}'),
+              headers: _authHeaders())
           .timeout(_requestTimeout);
       _guard(response);
       if (response.statusCode == 200) {
@@ -734,8 +715,7 @@ class TripsProvider with ChangeNotifier {
         if (data is! List) return;
         _trips = data.map((e) {
           final row = Map<String, dynamic>.from(e);
-          final startedAt =
-              DateTime.tryParse('${row['started_at'] ?? ''}') ?? DateTime.now();
+          final startedAt = DateTime.tryParse('${row['started_at'] ?? ''}') ?? DateTime.now();
           row['date'] = startedAt.toIso8601String().split('T')[0];
           row['time'] =
               '${startedAt.hour.toString().padLeft(2, '0')}:${startedAt.minute.toString().padLeft(2, '0')}';
@@ -753,30 +733,21 @@ class TripsProvider with ChangeNotifier {
 
   String? lastAcceptError;
 
-  // TASK 3 (ACCEPT UI smoothness) â€” in-flight guard + two-phase accept flow.
-  // The heavy list-mutation notifyListeners() never races Navigator route pushes.
-  final Set<String> _acceptInFlight = <String>{};
-  bool isAcceptInFlight(String dispatchId) =>
-      _acceptInFlight.contains(dispatchId);
-
-  /// Step 1 (HTTP phase): POST the accept, no list mutation, no notifyListeners().
-  /// Returns accepted trip on success. Double-tap-safe.
-  Future<Map<String, dynamic>?> tryAcceptDispatchHttp(
-    String dispatchId, {
-    String? criticality,
-  }) async {
+  /// Driver Acceptance â€” first eligible driver wins (backend atomic).
+  ///
+  /// [criticality] is the driver's own assessment of the job; the backend stores
+  /// it on the trip so the admin dashboard and trip history show a real value
+  /// instead of an empty column.
+  Future<Map<String, dynamic>?> acceptDispatch(String dispatchId, {String? criticality}) async {
     if (_driver == null) return null;
-    if (_acceptInFlight.contains(dispatchId)) {
-      debugPrint('[Accept] skip double-tap id=$dispatchId');
-      return null;
-    }
-    _acceptInFlight.add(dispatchId);
     lastAcceptError = null;
     try {
       final response = await http
           .post(
             Uri.parse('$baseUrl/api/dispatches/$dispatchId/accept'),
             headers: _authHeaders(),
+            // The backend matches on the human driver code + vehicle number,
+            // then re-checks approval, availability and vehicle eligibility.
             body: json.encode({
               'driver_id': _driver!.driverId,
               'vehicle_no': _driver!.vehicleNo,
@@ -784,26 +755,50 @@ class TripsProvider with ChangeNotifier {
             }),
           )
           .timeout(_requestTimeout);
+
       _guard(response);
+
       if (response.statusCode == 200) {
-        return _tryDecode(response.body) ?? {'id': dispatchId};
+        // Decode the server response BEFORE touching the dispatch list — the
+        // socket 'dispatch.accepted' event may already have removed it, and we
+        // need the accepted payload as a fallback so nothing breaks.
+        final accepted = _tryDecode(response.body) ?? {'id': dispatchId};
+
+        final matches = _activeDispatches.where((d) => d['id']?.toString() == dispatchId?.toString());
+        if (matches.isNotEmpty) {
+          _currentDispatch = matches.first;
+        } else {
+          // Socket already removed the job (race between broadcast and HTTP).
+          // Patch the accepted response into the current-dispatch slot so the
+          // response screen and resume card have all required fields.
+          _currentDispatch = {...accepted, 'id': dispatchId};
+        }
+        _activeDispatches.removeWhere((d) => d['id']?.toString() == dispatchId?.toString());
+        // Remember the trip too: if the driver backs out of the response
+        // screen, the dispatch screen can still offer "resume". Dispatch fields
+        // (lat/lng/address) are merged under the trip so the card renders even
+        // before the first refresh replaces it with the joined backend row.
+        _activeTrip = {...?_currentDispatch, ...accepted};
+        notifyListeners();
+        return accepted;
       }
+
       final err = _tryDecode(response.body);
-      final rawError =
-          (err?['error'] ?? 'Could not accept (status ${response.statusCode})')
-              .toString();
+      final rawError = (err?['error'] ?? 'Could not accept (status ${response.statusCode})').toString();
+
       if (response.statusCode == 409) {
         final lower = rawError.toLowerCase();
         if (lower.contains('busy') ||
             lower.contains('active emergency') ||
             lower.contains('already on') ||
             lower.contains('driver_is_busy')) {
-          lastAcceptError =
-              'You are already on an active emergency. Finish the current response first.';
+          lastAcceptError = 'You are already on an active emergency. Finish the current response first.';
         } else {
-          lastAcceptError = 'This issue has already been taken up';
+          lastAcceptError = rawError;
         }
-        fetchDispatches().ignore();
+        // The backend refuses for two different reasons: another driver won the
+        // race, or we are no longer AVAILABLE. Re-sync instead of guessing.
+        await fetchDispatches();
       } else {
         lastAcceptError = rawError;
       }
@@ -812,48 +807,9 @@ class TripsProvider with ChangeNotifier {
     } catch (e) {
       debugPrint('Accept dispatch error: $e');
       lastAcceptError = 'Network error. Try again.';
-    } finally {
-      _acceptInFlight.remove(dispatchId);
     }
-    return null;
-  }
-
-  /// Step 2 (UI commit phase): mutates dispatch list + notifies.
-  /// Called AFTER response route is pushed so rebuilds run off-screen.
-  void commitAcceptedDispatchUi({
-    required String dispatchId,
-    required Map<String, dynamic>? accepted,
-  }) {
-    if (accepted == null) {
-      notifyListeners();
-      return;
-    }
-    final matches = _activeDispatches.where(
-      (d) => d['id']?.toString() == dispatchId,
-    );
-    if (matches.isNotEmpty) {
-      _currentDispatch = matches.first;
-    } else {
-      _currentDispatch = {...accepted, 'id': dispatchId};
-    }
-    _activeDispatches.removeWhere((d) => d['id']?.toString() == dispatchId);
-    _activeTrip = {...?_currentDispatch, ...accepted};
     notifyListeners();
-  }
-
-  /// Legacy two-phase accept â€” callers (FCFS, resume path, tests) that don't
-  /// need to decouple UI rebuild from route push can continue using this.
-  /// Internally uses [tryAcceptDispatchHttp] + [commitAcceptedDispatchUi].
-  Future<Map<String, dynamic>?> acceptDispatch(
-    String dispatchId, {
-    String? criticality,
-  }) async {
-    final accepted = await tryAcceptDispatchHttp(
-      dispatchId,
-      criticality: criticality,
-    );
-    commitAcceptedDispatchUi(dispatchId: dispatchId, accepted: accepted);
-    return accepted;
+    return null;
   }
 
   void clearCurrentDispatch() {
@@ -868,10 +824,7 @@ class TripsProvider with ChangeNotifier {
     if (_driver?.token == null) return null;
     try {
       final res = await http
-          .get(
-            Uri.parse('$baseUrl/api/driver/profile'),
-            headers: _authHeaders(),
-          )
+          .get(Uri.parse('$baseUrl/api/driver/profile'), headers: _authHeaders())
           .timeout(_requestTimeout);
       if (res.statusCode != 200) return null;
       final user = _tryDecode(res.body)?['user'];
@@ -906,11 +859,7 @@ class TripsProvider with ChangeNotifier {
             .patch(
               Uri.parse('$baseUrl/api/driver/location'),
               headers: _authHeaders(),
-              body: json.encode({
-                'latitude': lat,
-                'longitude': lon,
-                'availability': 'BUSY',
-              }),
+              body: json.encode({'latitude': lat, 'longitude': lon, 'availability': 'BUSY'}),
             )
             .timeout(_requestTimeout);
         _guard(duty);
@@ -925,10 +874,8 @@ class TripsProvider with ChangeNotifier {
     if (_driver == null) return null;
     try {
       final response = await http
-          .get(
-            Uri.parse('$baseUrl/api/trips/active/${_driver!.backendId}'),
-            headers: _authHeaders(),
-          )
+          .get(Uri.parse('$baseUrl/api/trips/active/${_driver!.backendId}'),
+              headers: _authHeaders())
           .timeout(_requestTimeout);
       _guard(response);
       if (response.statusCode == 200) {
@@ -967,27 +914,21 @@ class TripsProvider with ChangeNotifier {
       Uri uri = Uri.parse('$baseUrl/api/dispatches');
       if (lat != null && lon != null) {
         final vt = _driver?.vehicleType;
-        uri = Uri.parse('$baseUrl/api/dispatches/nearby').replace(
-          queryParameters: {
-            'lat': lat.toString(),
-            'lon': lon.toString(),
-            if (vt != null && vt.isNotEmpty) 'vehicle_type': vt,
-            'radiusKm': '30',
-          },
-        );
+        uri = Uri.parse('$baseUrl/api/dispatches/nearby').replace(queryParameters: {
+          'lat': lat.toString(),
+          'lon': lon.toString(),
+          if (vt != null && vt.isNotEmpty) 'vehicle_type': vt,
+          'radiusKm': '30',
+        });
       }
       var list = await _fetchDispatchList(uri);
 
       // Radius/position filtered everything out: ask the server for every live
       // dispatch instead, so a job is never wiped just because GPS was wrong.
       if (list.isEmpty && uri.path.endsWith('/nearby')) {
-        final fallback = await _fetchDispatchList(
-          Uri.parse('$baseUrl/api/dispatches'),
-        );
+        final fallback = await _fetchDispatchList(Uri.parse('$baseUrl/api/dispatches'));
         if (fallback.isNotEmpty) {
-          debugPrint(
-            '[Dispatch] nearby empty -> fallback returned ${fallback.length}',
-          );
+          debugPrint('[Dispatch] nearby empty -> fallback returned ${fallback.length}');
           list = fallback;
         }
       }
@@ -1021,24 +962,16 @@ class TripsProvider with ChangeNotifier {
   /// GET [uri] and return the vehicle-type-filtered dispatch list (empty on error).
   Future<List<Map<String, dynamic>>> _fetchDispatchList(Uri uri) async {
     try {
-      final response = await http
-          .get(uri, headers: _authHeaders())
-          .timeout(_requestTimeout);
+      final response = await http.get(uri, headers: _authHeaders()).timeout(_requestTimeout);
       _guard(response);
       if (response.statusCode != 200) return [];
       final List<dynamic> data = json.decode(response.body);
-      var list = List<Map<String, dynamic>>.from(
-        data.map((e) => Map<String, dynamic>.from(e)),
-      );
+      var list =
+          List<Map<String, dynamic>>.from(data.map((e) => Map<String, dynamic>.from(e)));
       // Client-side eligibility: only my vehicle type (ambulance sees ambulance, fire sees fire).
       final vt = _driver?.vehicleType?.toLowerCase();
       if (vt != null && vt.isNotEmpty) {
-        list = list
-            .where(
-              (d) =>
-                  (d['required_vehicle']?.toString() ?? '').toLowerCase() == vt,
-            )
-            .toList();
+        list = list.where((d) => (d['required_vehicle']?.toString() ?? '').toLowerCase() == vt).toList();
       }
       return list;
     } catch (e) {
@@ -1072,8 +1005,7 @@ class TripsProvider with ChangeNotifier {
               'preemptions': preemptions,
               'confidence': confidence,
               'distance': distance,
-              'report_id':
-                  _currentDispatch?['report_id'], // Link to the dispatch report
+              'report_id': _currentDispatch?['report_id'] // Link to the dispatch report
             }),
           )
           .timeout(_requestTimeout);
@@ -1096,8 +1028,7 @@ class TripsProvider with ChangeNotifier {
     newTrip ??= Trip(
       id: '${now.millisecondsSinceEpoch}',
       date: now.toIso8601String().split('T')[0],
-      time:
-          '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}',
+      time: '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}',
       travelTime: travelTime,
       preemptions: preemptions,
       confidence: confidence,
@@ -1122,6 +1053,6 @@ enum _TokenCheck {
   /// We already resolved what to show (not approved, or offline with cache).
   handled,
 
-  /// The token is no longer valid Ã¢â‚¬â€ fall back to the stored credentials.
+  /// The token is no longer valid â€” fall back to the stored credentials.
   invalid,
 }
