@@ -788,7 +788,13 @@ class TripsProvider with ChangeNotifier {
 
       if (response.statusCode == 409) {
         final lower = rawError.toLowerCase();
-        if (lower.contains('busy') ||
+        // Silently ignore legacy availability errors — the concept is removed.
+        if (lower.contains('offline') ||
+            lower.contains('must be available') ||
+            lower.contains('availability')) {
+          await fetchDispatches();
+          // Don't set any error — just re-sync the job list silently.
+        } else if (lower.contains('busy') ||
             lower.contains('active emergency') ||
             lower.contains('already on') ||
             lower.contains('driver_is_busy')) {
@@ -796,8 +802,7 @@ class TripsProvider with ChangeNotifier {
         } else {
           lastAcceptError = rawError;
         }
-        // The backend refuses for two different reasons: another driver won the
-        // race, or we are no longer AVAILABLE. Re-sync instead of guessing.
+        // Re-sync instead of guessing.
         await fetchDispatches();
       } else {
         lastAcceptError = rawError;
