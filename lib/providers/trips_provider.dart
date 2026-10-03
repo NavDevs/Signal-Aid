@@ -8,6 +8,7 @@ import 'package:socket_io_client/socket_io_client.dart' as IO;
 import '../models/driver.dart';
 import '../models/trip.dart';
 import '../navigation.dart';
+import '../services/notification_service.dart';
 
 /// Backend-authoritative session state for the Signal Aid driver app.
 ///
@@ -348,6 +349,15 @@ class TripsProvider with ChangeNotifier {
     // An in-progress response survives a re-login/restart: pull it back so the
     // dispatch screen can offer "resume" instead of losing the active trip.
     await restoreActiveTrip();
+
+    // Register background polling for notifications (vehicle-type filtered)
+    if (merged.token != null && merged.vehicleType != null) {
+      NotificationService.instance.startPolling(
+        driverId: merged.driverId,
+        vehicleType: merged.vehicleType!,
+        token: merged.token!,
+      );
+    }
   }
 
   /// Refresh the remembered in-progress trip from the backend.
@@ -586,6 +596,8 @@ class TripsProvider with ChangeNotifier {
         debugPrint('[Session] Availability reset on logout failed: $e');
       }
     }
+    // Stop background polling so no stale notifications arrive after logout
+    await NotificationService.instance.stopPolling();
     _endSession(SessionState.signedOut);
   }
 
@@ -642,6 +654,8 @@ class TripsProvider with ChangeNotifier {
       // fetch response cannot wipe it a moment later.
       _socketAddSeq[job['id']] = _dispatchFetchSeq;
       notifyListeners();
+      // Fire a local notification so the driver sees this even when screen is off
+      NotificationService.instance.showDispatchNotification(job);
     });
 
     // Remove dispatch from list if another driver accepts it

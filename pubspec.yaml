@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.12+12
+version: 2.3.0+13
 
 environment:
   sdk: ^3.9.0
@@ -64,9 +64,13 @@ dependencies:
   path_provider: ^2.1.2
   url_launcher: ^6.3.1
 
+  # Push notifications (foreground + background / killed-app)
+  flutter_local_notifications: ^17.2.4
+
   # Real map + route rendering (same versions as the Roadly app in this repo)
   flutter_map: ^8.3.2
   latlong2: ^0.10.1
+  android_alarm_manager_plus: ^5.1.2
 
 dev_dependencies:
   flutter_test:

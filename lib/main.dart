@@ -13,9 +13,12 @@ import 'screens/splash_screen.dart';
 import 'screens/approval_pending_screen.dart';
 import 'screens/profile_screen.dart';
 import 'utils/app_colors.dart';
+import 'services/notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Initialize notification service (foreground + background polling)
+  await NotificationService.instance.init();
   runApp(const SignalAidApp());
 }
 

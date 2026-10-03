@@ -11,6 +11,8 @@ android {
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
+        // Required by flutter_local_notifications (uses java.time APIs)
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
@@ -23,8 +25,8 @@ android {
         applicationId = "com.signalaid.signalaid"
         minSdk = 24
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 13
+        versionName = "2.3.0"
     }
 
     buildTypes {
@@ -35,6 +37,11 @@ android {
             isDebuggable = true
         }
     }
+}
+
+dependencies {
+    // Required for flutter_local_notifications core library desugaring
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }
 
 flutter {
