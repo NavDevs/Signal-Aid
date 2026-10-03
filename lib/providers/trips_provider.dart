@@ -654,8 +654,16 @@ class TripsProvider with ChangeNotifier {
       // fetch response cannot wipe it a moment later.
       _socketAddSeq[job['id']] = _dispatchFetchSeq;
       notifyListeners();
-      // Fire a local notification so the driver sees this even when screen is off
-      NotificationService.instance.showDispatchNotification(job);
+      // Fire a local notification so the driver sees this even when screen
+      // is off. Strict once-per-event + role-gated + account scoped.
+      final d = _driver;
+      if (d != null && d.driverId.isNotEmpty && (d.vehicleType ?? '').isNotEmpty) {
+        NotificationService.instance.showDispatchNotification(
+          job,
+          driverId: d.driverId,
+          driverVehicleType: d.vehicleType!,
+        );
+      }
     });
 
     // Remove dispatch from list if another driver accepts it
