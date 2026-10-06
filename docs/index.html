@@ -1,0 +1,1414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Signal Aid — Emergency Response System</title>
+<meta name="description" content="Signal Aid is an ML-powered emergency response system. Navigate traffic, preempt signals, save lives. Download for Android.">
+<meta property="og:title" content="Signal Aid — Emergency Response System">
+<meta property="og:description" content="ML-powered emergency signal preemption. Navigate traffic. Save lives.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://navdevs.github.io/Signal-Aid/">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+/* ============================================
+   SIGNAL AID — Swiss International Style
+   ============================================ */
+
+/* --- Reset & Base --- */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --white: #FFFFFF;
+  --black: #000000;
+  --muted: #F2F2F2;
+  --accent: #FF3000;
+  --border: #000000;
+  --font: 'Inter', 'Helvetica Neue', 'Arial', sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+  font-size: 16px;
+}
+
+body {
+  font-family: var(--font);
+  background: var(--white);
+  color: var(--black);
+  line-height: 1.5;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* --- Noise Texture (global) --- */
+body::after {
+  content: '';
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.015;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
+}
+
+/* --- Pattern Classes --- */
+.swiss-grid-pattern {
+  background-image:
+    linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.swiss-dots {
+  background-image: radial-gradient(circle, rgba(0,0,0,0.04) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+.swiss-diagonal {
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 4px,
+    rgba(0,0,0,0.02) 4px,
+    rgba(0,0,0,0.02) 5px
+  );
+}
+
+/* --- Typography --- */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 900;
+  text-transform: uppercase;
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* --- Focus States --- */
+*:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* --- Accessibility --- */
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* --- Section Label --- */
+.section-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 1.5rem;
+  display: block;
+}
+
+/* --- Container --- */
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .container { padding: 0 3rem; }
+}
+@media (min-width: 1024px) {
+  .container { padding: 0 4rem; }
+}
+
+/* ============================================
+   NAVIGATION
+   ============================================ */
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--white);
+  border-bottom: 4px solid var(--black);
+}
+
+.nav__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+}
+
+.nav__logo {
+  font-size: 1.25rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.nav__logo span {
+  color: var(--accent);
+}
+
+.nav__links {
+  display: none;
+  list-style: none;
+  gap: 2rem;
+}
+
+.nav__links a {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  position: relative;
+  overflow: hidden;
+  display: inline-block;
+  padding: 0.25rem 0;
+}
+
+.nav__links a::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0;
+  width: 0; height: 2px;
+  background: var(--accent);
+  transition: width 200ms ease-out;
+}
+
+.nav__links a:hover::after {
+  width: 100%;
+}
+
+.nav__cta {
+  display: inline-block;
+  background: var(--black);
+  color: var(--white);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  cursor: pointer;
+  transition: background 200ms ease-out;
+  text-decoration: none;
+}
+
+.nav__cta:hover {
+  background: var(--accent);
+}
+
+@media (min-width: 768px) {
+  .nav__links {
+    display: flex;
+  }
+}
+
+/* ============================================
+   HERO
+   ============================================ */
+.hero {
+  border-bottom: 4px solid var(--black);
+  overflow: hidden;
+}
+
+.hero__inner {
+  display: grid;
+  grid-template-columns: 1fr;
+  min-height: calc(100vh - 68px);
+}
+
+.hero__content {
+  padding: 3rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.hero__headline {
+  font-size: clamp(3.5rem, 12vw, 10rem);
+  line-height: 0.85;
+  letter-spacing: -0.04em;
+  margin-bottom: 1.5rem;
+}
+
+.hero__headline em {
+  font-style: normal;
+  color: var(--accent);
+  display: block;
+}
+
+.hero__sub {
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  font-weight: 400;
+  line-height: 1.5;
+  max-width: 520px;
+  margin-bottom: 2.5rem;
+  color: #333;
+}
+
+.hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 1rem 2rem;
+  border: 4px solid var(--black);
+  cursor: pointer;
+  transition: all 200ms ease-out;
+  text-decoration: none;
+  min-height: 56px;
+}
+
+.btn--primary {
+  background: var(--black);
+  color: var(--white);
+}
+
+.btn--primary:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.btn--secondary {
+  background: var(--white);
+  color: var(--black);
+}
+
+.btn--secondary:hover {
+  background: var(--black);
+  color: var(--white);
+}
+
+.hero__geo {
+  display: none;
+  position: relative;
+  background: var(--muted);
+  overflow: hidden;
+}
+
+.hero__geo::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background-image:
+    linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Geometric shapes */
+.geo-circle {
+  position: absolute;
+  width: clamp(200px, 20vw, 350px);
+  height: clamp(200px, 20vw, 350px);
+  border-radius: 50%;
+  background: var(--accent);
+  top: 15%;
+  left: 20%;
+}
+
+.geo-rect {
+  position: absolute;
+  width: clamp(140px, 14vw, 240px);
+  height: clamp(220px, 22vw, 380px);
+  background: var(--black);
+  bottom: 15%;
+  right: 15%;
+}
+
+.geo-line-h {
+  position: absolute;
+  width: 60%;
+  height: 4px;
+  background: var(--black);
+  top: 55%;
+  left: 10%;
+}
+
+.geo-line-v {
+  position: absolute;
+  width: 4px;
+  height: 40%;
+  background: var(--accent);
+  top: 20%;
+  right: 35%;
+}
+
+.geo-square {
+  position: absolute;
+  width: clamp(80px, 8vw, 120px);
+  height: clamp(80px, 8vw, 120px);
+  border: 4px solid var(--black);
+  top: 60%;
+  left: 35%;
+}
+
+@media (min-width: 768px) {
+  .hero__content {
+    padding: 4rem 3rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hero__inner {
+    grid-template-columns: 7fr 5fr;
+  }
+  .hero__content {
+    padding: 6rem 4rem;
+  }
+  .hero__geo {
+    display: block;
+    border-left: 4px solid var(--black);
+  }
+}
+
+/* ============================================
+   ABOUT
+   ============================================ */
+.about {
+  background: var(--muted);
+  border-bottom: 4px solid var(--black);
+}
+
+.about__inner {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+}
+
+.about__content {
+  padding: 4rem 1.5rem;
+}
+
+.about__headline {
+  font-size: clamp(2rem, 5vw, 4rem);
+  margin-bottom: 2rem;
+  max-width: 600px;
+}
+
+.about__text {
+  font-size: 1.05rem;
+  line-height: 1.7;
+  max-width: 560px;
+  color: #222;
+  margin-bottom: 1.5rem;
+}
+
+.about__geo {
+  display: none;
+  position: relative;
+  background: var(--white);
+  min-height: 300px;
+  overflow: hidden;
+}
+
+.about__geo::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background-image: radial-gradient(circle, rgba(0,0,0,0.04) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+.about__geo-circle {
+  position: absolute;
+  width: 180px; height: 180px;
+  border: 4px solid var(--black);
+  border-radius: 50%;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.about__geo-dot {
+  position: absolute;
+  width: 24px; height: 24px;
+  background: var(--accent);
+  border-radius: 50%;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+@media (min-width: 768px) {
+  .about__content {
+    padding: 5rem 3rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .about__inner {
+    grid-template-columns: 7fr 5fr;
+  }
+  .about__content {
+    padding: 6rem 4rem;
+  }
+  .about__geo {
+    display: block;
+    border-left: 4px solid var(--black);
+  }
+}
+
+/* ============================================
+   FEATURES
+   ============================================ */
+.features {
+  border-bottom: 4px solid var(--black);
+}
+
+.features__header {
+  padding: 4rem 1.5rem 2rem;
+}
+
+.features__headline {
+  font-size: clamp(2.5rem, 6vw, 5rem);
+}
+
+.features__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  border-top: 4px solid var(--black);
+}
+
+.feature-card {
+  padding: 2rem 1.5rem;
+  border-bottom: 2px solid var(--black);
+  transition: all 200ms ease-out;
+  position: relative;
+}
+
+.feature-card:hover {
+  background: var(--black);
+  color: var(--white);
+}
+
+.feature-card__num {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.15em;
+  margin-bottom: 1rem;
+  transition: color 200ms ease-out;
+}
+
+.feature-card:hover .feature-card__num {
+  color: var(--accent);
+}
+
+.feature-card__icon {
+  font-size: 1.5rem;
+  margin-bottom: 0.75rem;
+  display: block;
+}
+
+.feature-card__title {
+  font-size: 1.1rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.75rem;
+  line-height: 1.1;
+}
+
+.feature-card__desc {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  opacity: 0.8;
+}
+
+@media (min-width: 640px) {
+  .features__grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .feature-card:nth-child(odd) {
+    border-right: 2px solid var(--black);
+  }
+}
+
+@media (min-width: 768px) {
+  .features__header {
+    padding: 5rem 3rem 2.5rem;
+  }
+  .feature-card {
+    padding: 2.5rem 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .features__header {
+    padding: 6rem 4rem 3rem;
+  }
+  .features__grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .feature-card {
+    padding: 3rem 2rem;
+    border-right: 2px solid var(--black);
+  }
+  .feature-card:nth-child(4n) {
+    border-right: none;
+  }
+  .feature-card:nth-child(odd) {
+    border-right: 2px solid var(--black);
+  }
+  .feature-card:nth-child(4) {
+    border-right: none;
+  }
+  .feature-card:nth-child(n+5) {
+    border-top: none;
+  }
+}
+
+/* ============================================
+   STATS
+   ============================================ */
+.stats {
+  background: var(--black);
+  color: var(--white);
+  border-bottom: 4px solid var(--black);
+  position: relative;
+}
+
+.stats::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 24px 24px;
+  pointer-events: none;
+}
+
+.stats__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  position: relative;
+  z-index: 1;
+}
+
+.stat {
+  padding: 3rem 1.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  text-align: left;
+}
+
+.stat:nth-child(odd) {
+  border-right: 1px solid rgba(255,255,255,0.1);
+}
+
+.stat__value {
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+
+.stat__label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.5;
+}
+
+@media (min-width: 768px) {
+  .stat {
+    padding: 4rem 3rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .stats__grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .stat {
+    padding: 5rem 3rem;
+    border-bottom: none;
+    border-right: 1px solid rgba(255,255,255,0.1);
+  }
+  .stat:last-child {
+    border-right: none;
+  }
+}
+
+/* ============================================
+   HOW IT WORKS
+   ============================================ */
+.process {
+  border-bottom: 4px solid var(--black);
+  position: relative;
+}
+
+.process__header {
+  padding: 4rem 1.5rem 2rem;
+}
+
+.process__headline {
+  font-size: clamp(2.5rem, 6vw, 5rem);
+}
+
+.process__steps {
+  display: grid;
+  grid-template-columns: 1fr;
+  border-top: 4px solid var(--black);
+}
+
+.step {
+  padding: 3rem 1.5rem;
+  border-bottom: 2px solid var(--black);
+  position: relative;
+}
+
+.step::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.step:nth-child(1)::before {
+  background-image: repeating-linear-gradient(
+    45deg, transparent, transparent 4px,
+    rgba(0,0,0,0.02) 4px, rgba(0,0,0,0.02) 5px
+  );
+  opacity: 1;
+}
+
+.step:nth-child(2) {
+  background: var(--muted);
+}
+
+.step:nth-child(2)::before {
+  background-image: radial-gradient(circle, rgba(0,0,0,0.04) 1px, transparent 1px);
+  background-size: 16px 16px;
+  opacity: 1;
+}
+
+.step:nth-child(3)::before {
+  background-image:
+    linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px);
+  background-size: 24px 24px;
+  opacity: 1;
+}
+
+.step__num {
+  font-size: clamp(4rem, 10vw, 8rem);
+  font-weight: 900;
+  color: var(--accent);
+  line-height: 0.85;
+  letter-spacing: -0.05em;
+  margin-bottom: 1rem;
+  position: relative;
+}
+
+.step__title {
+  font-size: clamp(1.5rem, 3vw, 2.5rem);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  margin-bottom: 1rem;
+  position: relative;
+}
+
+.step__desc {
+  font-size: 1rem;
+  line-height: 1.6;
+  max-width: 480px;
+  opacity: 0.7;
+  position: relative;
+}
+
+@media (min-width: 768px) {
+  .process__header {
+    padding: 5rem 3rem 2.5rem;
+  }
+  .step {
+    padding: 4rem 3rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .process__header {
+    padding: 6rem 4rem 3rem;
+  }
+  .process__steps {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .step {
+    padding: 5rem 3rem;
+    border-right: 2px solid var(--black);
+    border-bottom: none;
+  }
+  .step:last-child {
+    border-right: none;
+  }
+}
+
+/* ============================================
+   TECH STACK
+   ============================================ */
+.tech {
+  background: var(--muted);
+  border-bottom: 4px solid var(--black);
+  position: relative;
+}
+
+.tech::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background-image: radial-gradient(circle, rgba(0,0,0,0.04) 1px, transparent 1px);
+  background-size: 16px 16px;
+  pointer-events: none;
+}
+
+.tech__inner {
+  padding: 4rem 1.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+.tech__headline {
+  font-size: clamp(2rem, 5vw, 4rem);
+  margin-bottom: 2.5rem;
+}
+
+.tech__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+}
+
+.tech-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+  border-bottom: 2px solid var(--black);
+}
+
+.tech-item__label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  opacity: 0.5;
+}
+
+.tech-item__value {
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+@media (min-width: 768px) {
+  .tech__inner {
+    padding: 5rem 3rem;
+  }
+  .tech__grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0 3rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .tech__inner {
+    padding: 6rem 4rem;
+  }
+}
+
+/* ============================================
+   DOWNLOAD CTA
+   ============================================ */
+.download {
+  background: var(--black);
+  color: var(--white);
+  border-bottom: 4px solid var(--black);
+  position: relative;
+  overflow: hidden;
+}
+
+.download::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-size: 24px 24px;
+  pointer-events: none;
+}
+
+/* Red accent bar */
+.download::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: clamp(60px, 8vw, 120px);
+  height: 100%;
+  background: var(--accent);
+}
+
+.download__inner {
+  padding: 5rem 1.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+.download__headline {
+  font-size: clamp(3rem, 10vw, 8rem);
+  letter-spacing: -0.04em;
+  margin-bottom: 1.5rem;
+  line-height: 0.85;
+}
+
+.download__sub {
+  font-size: 1.1rem;
+  opacity: 0.6;
+  margin-bottom: 3rem;
+  max-width: 500px;
+}
+
+.download__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.btn--download {
+  background: var(--accent);
+  color: var(--white);
+  border-color: var(--accent);
+  font-size: 0.85rem;
+  padding: 1.25rem 2.5rem;
+}
+
+.btn--download:hover {
+  background: var(--white);
+  color: var(--black);
+  border-color: var(--white);
+}
+
+.btn--github {
+  background: transparent;
+  color: var(--white);
+  border-color: rgba(255,255,255,0.3);
+}
+
+.btn--github:hover {
+  border-color: var(--white);
+  background: var(--white);
+  color: var(--black);
+}
+
+.download__version {
+  margin-top: 2rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  opacity: 0.4;
+}
+
+@media (min-width: 768px) {
+  .download__inner {
+    padding: 6rem 3rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .download__inner {
+    padding: 8rem 4rem;
+  }
+}
+
+/* ============================================
+   FOOTER
+   ============================================ */
+.footer {
+  background: var(--black);
+  color: var(--white);
+  position: relative;
+}
+
+.footer::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-size: 24px 24px;
+  pointer-events: none;
+}
+
+.footer__inner {
+  padding: 3rem 1.5rem;
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.footer__brand {
+  font-size: 1.25rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.footer__brand span {
+  color: var(--accent);
+}
+
+.footer__text {
+  font-size: 0.8rem;
+  opacity: 0.4;
+  line-height: 1.6;
+}
+
+.footer__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.footer__links a {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  opacity: 0.5;
+  transition: opacity 200ms ease-out, color 200ms ease-out;
+}
+
+.footer__links a:hover {
+  opacity: 1;
+  color: var(--accent);
+}
+
+.footer__copy {
+  font-size: 0.7rem;
+  opacity: 0.3;
+  letter-spacing: 0.1em;
+}
+
+@media (min-width: 768px) {
+  .footer__inner {
+    padding: 4rem 3rem;
+    grid-template-columns: 1fr auto;
+    align-items: start;
+  }
+}
+
+@media (min-width: 1024px) {
+  .footer__inner {
+    padding: 4rem;
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}
+
+/* ============================================
+   REDUCED MOTION
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ============================================
+   MOBILE MENU
+   ============================================ */
+.nav__toggle {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+}
+
+.nav__toggle span {
+  width: 24px;
+  height: 2px;
+  background: var(--black);
+  transition: all 200ms ease-out;
+}
+
+@media (min-width: 768px) {
+  .nav__toggle {
+    display: none;
+  }
+}
+
+/* ============================================
+   ANDROID BADGE
+   ============================================ */
+.android-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 1.5rem;
+  border: 2px solid var(--accent);
+  padding: 0.35rem 0.75rem;
+}
+
+/* Arrow icon in buttons */
+.btn svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+  transition: transform 200ms ease-out;
+}
+
+.btn:hover svg {
+  transform: translateX(3px);
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================
+     NAVIGATION
+     ============================================ -->
+<nav class="nav" role="navigation" aria-label="Main navigation">
+  <div class="container nav__inner">
+    <a href="#" class="nav__logo" aria-label="Signal Aid Home">SIGNAL<span>AID</span></a>
+
+    <ul class="nav__links">
+      <li><a href="#about">System</a></li>
+      <li><a href="#features">Capabilities</a></li>
+      <li><a href="#process">Process</a></li>
+      <li><a href="#tech">Stack</a></li>
+    </ul>
+
+    <a href="https://github.com/NavDevs/Signal-Aid/releases/download/v3.0.0/Signal-Aid-v3.0.0.apk" class="nav__cta" aria-label="Download Signal Aid APK">DOWNLOAD APK</a>
+  </div>
+</nav>
+
+<!-- ============================================
+     HERO
+     ============================================ -->
+<section class="hero" id="hero">
+  <div class="hero__inner">
+    <div class="hero__content container">
+      <span class="section-label">01. SYSTEM</span>
+      <div class="android-badge">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M17.523 15.341a.96.96 0 0 0-.96.96v2.879a.96.96 0 0 0 1.92 0v-2.879a.96.96 0 0 0-.96-.96zm-11.046 0a.96.96 0 0 0-.96.96v2.879a.96.96 0 1 0 1.92 0v-2.879a.96.96 0 0 0-.96-.96zm11.126-6.32-.87-1.681a.24.24 0 0 0-.426.216l.882 1.703a6.478 6.478 0 0 0-2.689 1.056 6.478 6.478 0 0 0-2.5-.504 6.478 6.478 0 0 0-2.5.504 6.478 6.478 0 0 0-2.689-1.056l.882-1.703a.24.24 0 0 0-.426-.216l-.87 1.681C6.556 10.5 5.5 12.202 5.5 14.141h13c0-1.939-1.056-3.641-2.897-5.12zM9.5 12.861a.72.72 0 1 1 .72-.72.72.72 0 0 1-.72.72zm5 0a.72.72 0 1 1 .72-.72.72.72 0 0 1-.72.72zM5.5 15.341h13v5.279a1.44 1.44 0 0 1-1.44 1.44H6.94a1.44 1.44 0 0 1-1.44-1.44v-5.279z"/></svg>
+        ANDROID APP
+      </div>
+      <h1 class="hero__headline">
+        EVERY<br>SECOND<br><em>COUNTS</em>
+      </h1>
+      <p class="hero__sub">
+        ML-powered emergency signal preemption. Navigate traffic. Clear intersections. Save lives.
+      </p>
+      <div class="hero__actions">
+        <a href="https://github.com/NavDevs/Signal-Aid/releases/download/v3.0.0/Signal-Aid-v3.0.0.apk" class="btn btn--primary" aria-label="Download Signal Aid APK version 3.0.0">
+          DOWNLOAD v3.0.0
+          <svg viewBox="0 0 24 24" width="14" height="14"><path d="M12 16l-5-5h3V4h4v7h3l-5 5zm-7 4h14v2H5v-2z"/></svg>
+        </a>
+        <a href="https://github.com/NavDevs/Signal-Aid" target="_blank" rel="noopener noreferrer" class="btn btn--secondary">
+          VIEW ON GITHUB
+          <svg viewBox="0 0 24 24" width="14" height="14"><path d="M5 12h14m-7-7l7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+    <div class="hero__geo" aria-hidden="true">
+      <div class="geo-circle"></div>
+      <div class="geo-rect"></div>
+      <div class="geo-line-h"></div>
+      <div class="geo-line-v"></div>
+      <div class="geo-square"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     ABOUT
+     ============================================ -->
+<section class="about" id="about">
+  <div class="about__inner">
+    <div class="about__content">
+      <span class="section-label">02. METHOD</span>
+      <h2 class="about__headline">INTELLIGENT EMERGENCY RESPONSE</h2>
+      <p class="about__text">
+        Signal Aid is an emergency response system built with Flutter that empowers ambulance and fire truck drivers to navigate urban traffic with unprecedented speed. Using machine learning, the app preempts traffic signals along emergency routes in real time.
+      </p>
+      <p class="about__text">
+        From the moment a dispatch is accepted, Signal Aid calculates the optimal route, clears intersections ahead, and provides live tracking — reducing response times when every second matters.
+      </p>
+    </div>
+    <div class="about__geo" aria-hidden="true">
+      <div class="about__geo-circle"></div>
+      <div class="about__geo-dot"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     FEATURES
+     ============================================ -->
+<section class="features" id="features">
+  <div class="features__header container">
+    <span class="section-label">03. CAPABILITIES</span>
+    <h2 class="features__headline">THE SYSTEM</h2>
+  </div>
+  <div class="features__grid">
+
+    <div class="feature-card">
+      <span class="feature-card__num">01</span>
+      <span class="feature-card__icon" aria-hidden="true">&#x1F512;</span>
+      <h3 class="feature-card__title">Driver Authentication</h3>
+      <p class="feature-card__desc">Secure login with Driver ID and Vehicle Number. Role-based access ensures only authorized personnel operate the system.</p>
+    </div>
+
+    <div class="feature-card">
+      <span class="feature-card__num">02</span>
+      <span class="feature-card__icon" aria-hidden="true">&#x1F5FA;</span>
+      <h3 class="feature-card__title">Dispatch Planning</h3>
+      <p class="feature-card__desc">Real-time route planning with ETA calculation. Accept emergency dispatches and receive optimized navigation instantly.</p>
+    </div>
+
+    <div class="feature-card">
+      <span class="feature-card__num">03</span>
+      <span class="feature-card__icon" aria-hidden="true">&#x26A1;</span>
+      <h3 class="feature-card__title">Criticality Levels</h3>
+      <p class="feature-card__desc">Choose between Normal, High, and Critical emergency levels. The system adapts route priority and signal preemption urgency accordingly.</p>
+    </div>
+
+    <div class="feature-card">
+      <span class="feature-card__num">04</span>
+      <span class="feature-card__icon" aria-hidden="true">&#x1F6A6;</span>
+      <h3 class="feature-card__title">Signal Preemption</h3>
+      <p class="feature-card__desc">ML-powered traffic signal clearing for emergency vehicles. Intersections are preempted in real time to create a clear corridor.</p>
+    </div>
+
+    <div class="feature-card">
+      <span class="feature-card__num">05</span>
+      <span class="feature-card__icon" aria-hidden="true">&#x23F1;</span>
+      <h3 class="feature-card__title">Live Tracking</h3>
+      <p class="feature-card__desc">Real-time countdown timer with intersection status updates. Monitor every signal change as you approach.</p>
+    </div>
+
+    <div class="feature-card">
+      <span class="feature-card__num">06</span>
+      <span class="feature-card__icon" aria-hidden="true">&#x1F4E1;</span>
+      <h3 class="feature-card__title">Live Dispatch</h3>
+      <p class="feature-card__desc">Socket.IO pushes new emergency requests the instant a citizen reports them. No polling, no delays — instant notification.</p>
+    </div>
+
+    <div class="feature-card">
+      <span class="feature-card__num">07</span>
+      <span class="feature-card__icon" aria-hidden="true">&#x1F4CA;</span>
+      <h3 class="feature-card__title">Trip History</h3>
+      <p class="feature-card__desc">Complete log of all emergency responses with statistics. Review past trips, response times, and route efficiency.</p>
+    </div>
+
+    <div class="feature-card">
+      <span class="feature-card__num">08</span>
+      <span class="feature-card__icon" aria-hidden="true">&#x1F319;</span>
+      <h3 class="feature-card__title">Dark Theme</h3>
+      <p class="feature-card__desc">Eye-friendly dark UI optimized for emergency vehicle cockpits. Reduced glare during night operations.</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================================
+     STATS
+     ============================================ -->
+<section class="stats" aria-label="Key statistics">
+  <div class="stats__grid">
+    <div class="stat">
+      <div class="stat__value">v3.0</div>
+      <div class="stat__label">Latest Version</div>
+    </div>
+    <div class="stat">
+      <div class="stat__value">50MB</div>
+      <div class="stat__label">Download Size</div>
+    </div>
+    <div class="stat">
+      <div class="stat__value">Flutter</div>
+      <div class="stat__label">Built With</div>
+    </div>
+    <div class="stat">
+      <div class="stat__value">MIT</div>
+      <div class="stat__label">License</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     HOW IT WORKS
+     ============================================ -->
+<section class="process" id="process">
+  <div class="process__header container">
+    <span class="section-label">04. PROCESS</span>
+    <h2 class="process__headline">HOW IT WORKS</h2>
+  </div>
+  <div class="process__steps">
+
+    <div class="step">
+      <div class="step__num">01</div>
+      <h3 class="step__title">Authenticate</h3>
+      <p class="step__desc">Driver logs in with secure credentials — Driver ID and assigned Vehicle Number. The system validates identity and connects to dispatch.</p>
+    </div>
+
+    <div class="step">
+      <div class="step__num">02</div>
+      <h3 class="step__title">Dispatch</h3>
+      <p class="step__desc">Accept incoming emergency requests in real time. The system calculates the optimal route, sets criticality level, and prepares signal preemption.</p>
+    </div>
+
+    <div class="step">
+      <div class="step__num">03</div>
+      <h3 class="step__title">Navigate</h3>
+      <p class="step__desc">ML clears traffic signals ahead of your route. Real-time tracking guides you through every intersection with live countdown and status updates.</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================================
+     TECH STACK
+     ============================================ -->
+<section class="tech" id="tech">
+  <div class="tech__inner container">
+    <span class="section-label">05. ARCHITECTURE</span>
+    <h2 class="tech__headline">TECH STACK</h2>
+    <div class="tech__grid">
+      <div class="tech-item">
+        <span class="tech-item__label">Framework</span>
+        <span class="tech-item__value">Flutter 3.27</span>
+      </div>
+      <div class="tech-item">
+        <span class="tech-item__label">Language</span>
+        <span class="tech-item__value">Dart 3.6</span>
+      </div>
+      <div class="tech-item">
+        <span class="tech-item__label">State</span>
+        <span class="tech-item__value">Provider</span>
+      </div>
+      <div class="tech-item">
+        <span class="tech-item__label">Backend</span>
+        <span class="tech-item__value">Supabase</span>
+      </div>
+      <div class="tech-item">
+        <span class="tech-item__label">Real-time</span>
+        <span class="tech-item__value">Socket.IO</span>
+      </div>
+      <div class="tech-item">
+        <span class="tech-item__label">Storage</span>
+        <span class="tech-item__value">SharedPreferences</span>
+      </div>
+      <div class="tech-item">
+        <span class="tech-item__label">Build</span>
+        <span class="tech-item__value">Gradle 8.12</span>
+      </div>
+      <div class="tech-item">
+        <span class="tech-item__label">Platform</span>
+        <span class="tech-item__value">Android API 21+</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     DOWNLOAD CTA
+     ============================================ -->
+<section class="download" id="download">
+  <div class="download__inner container">
+    <span class="section-label" style="color: var(--accent);">06. DEPLOY</span>
+    <h2 class="download__headline">DOWNLOAD<br>NOW</h2>
+    <p class="download__sub">Get Signal Aid v3.0.0 for Android. Free, open source, MIT licensed.</p>
+    <div class="download__actions">
+      <a href="https://github.com/NavDevs/Signal-Aid/releases/download/v3.0.0/Signal-Aid-v3.0.0.apk" class="btn btn--download" aria-label="Download Signal Aid APK version 3.0.0">
+        DOWNLOAD APK — 50.3 MB
+        <svg viewBox="0 0 24 24" width="14" height="14"><path d="M12 16l-5-5h3V4h4v7h3l-5 5zm-7 4h14v2H5v-2z"/></svg>
+      </a>
+      <a href="https://github.com/NavDevs/Signal-Aid" target="_blank" rel="noopener noreferrer" class="btn btn--github">
+        VIEW ON GITHUB
+        <svg viewBox="0 0 24 24" width="14" height="14"><path d="M5 12h14m-7-7l7 7-7 7" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+      </a>
+    </div>
+    <p class="download__version">Signal-Aid-v3.0.0.apk · Android 5.0+ · Open Source</p>
+  </div>
+</section>
+
+<!-- ============================================
+     FOOTER
+     ============================================ -->
+<footer class="footer">
+  <div class="footer__inner container">
+    <div>
+      <div class="footer__brand">SIGNAL<span>AID</span></div>
+      <p class="footer__text" style="margin-top: 0.75rem;">Emergency response system.<br>Built by NavDevs.</p>
+    </div>
+    <div class="footer__links">
+      <a href="https://github.com/NavDevs/Signal-Aid" target="_blank" rel="noopener noreferrer">GitHub</a>
+      <a href="https://github.com/NavDevs/Signal-Aid/releases" target="_blank" rel="noopener noreferrer">Releases</a>
+      <a href="https://github.com/NavDevs/Signal-Aid/issues" target="_blank" rel="noopener noreferrer">Issues</a>
+    </div>
+    <div>
+      <p class="footer__copy">&copy; 2026 NavDevs. MIT License.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
