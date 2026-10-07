@@ -12,6 +12,10 @@
   <img src="https://img.shields.io/badge/Version-1.0.12-orange" alt="Version">
 </p>
 
+<p align="center">
+  <strong><a href="https://navdevs.github.io/Signal-Aid/">🌐 Visit the Official Website</a></strong>
+</p>
+
 ## 📱 Description
 
 **Signal Aid** is an emergency response system mobile application built with Flutter. Originally converted from a React Native/Expo project, this app helps emergency vehicle drivers navigate through traffic with ML-powered signal preemption, reducing response times and improving public safety.
