@@ -1,1414 +1,623 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Signal Aid — Emergency Response System</title>
-<meta name="description" content="Signal Aid is an ML-powered emergency response system. Navigate traffic, preempt signals, save lives. Download for Android.">
-<meta property="og:title" content="Signal Aid — Emergency Response System">
-<meta property="og:description" content="ML-powered emergency signal preemption. Navigate traffic. Save lives.">
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://navdevs.github.io/Signal-Aid/">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
-<style>
-/* ============================================
-   SIGNAL AID — Swiss International Style
-   ============================================ */
-
-/* --- Reset & Base --- */
-*, *::before, *::after {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-:root {
-  --white: #FFFFFF;
-  --black: #000000;
-  --muted: #F2F2F2;
-  --accent: #FF3000;
-  --border: #000000;
-  --font: 'Inter', 'Helvetica Neue', 'Arial', sans-serif;
-}
-
-html {
-  scroll-behavior: smooth;
-  font-size: 16px;
-}
-
-body {
-  font-family: var(--font);
-  background: var(--white);
-  color: var(--black);
-  line-height: 1.5;
-  font-weight: 400;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden;
-}
-
-/* --- Noise Texture (global) --- */
-body::after {
-  content: '';
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  pointer-events: none;
-  z-index: 9999;
-  opacity: 0.015;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-repeat: repeat;
-  background-size: 256px 256px;
-}
-
-/* --- Pattern Classes --- */
-.swiss-grid-pattern {
-  background-image:
-    linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px);
-  background-size: 24px 24px;
-}
-
-.swiss-dots {
-  background-image: radial-gradient(circle, rgba(0,0,0,0.04) 1px, transparent 1px);
-  background-size: 16px 16px;
-}
-
-.swiss-diagonal {
-  background-image: repeating-linear-gradient(
-    45deg,
-    transparent,
-    transparent 4px,
-    rgba(0,0,0,0.02) 4px,
-    rgba(0,0,0,0.02) 5px
-  );
-}
-
-/* --- Typography --- */
-h1, h2, h3, h4, h5, h6 {
-  font-weight: 900;
-  text-transform: uppercase;
-  line-height: 0.9;
-  letter-spacing: -0.03em;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-/* --- Focus States --- */
-*:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-/* --- Accessibility --- */
-.sr-only {
-  position: absolute;
-  width: 1px; height: 1px;
-  padding: 0; margin: -1px;
-  overflow: hidden;
-  clip: rect(0,0,0,0);
-  white-space: nowrap;
-  border: 0;
-}
-
-/* --- Section Label --- */
-.section-label {
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--accent);
-  margin-bottom: 1.5rem;
-  display: block;
-}
-
-/* --- Container --- */
-.container {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 0 1.5rem;
-}
-
-@media (min-width: 768px) {
-  .container { padding: 0 3rem; }
-}
-@media (min-width: 1024px) {
-  .container { padding: 0 4rem; }
-}
-
-/* ============================================
-   NAVIGATION
-   ============================================ */
-.nav {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background: var(--white);
-  border-bottom: 4px solid var(--black);
-}
-
-.nav__inner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 64px;
-}
-
-.nav__logo {
-  font-size: 1.25rem;
-  font-weight: 900;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.nav__logo span {
-  color: var(--accent);
-}
-
-.nav__links {
-  display: none;
-  list-style: none;
-  gap: 2rem;
-}
-
-.nav__links a {
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  position: relative;
-  overflow: hidden;
-  display: inline-block;
-  padding: 0.25rem 0;
-}
-
-.nav__links a::after {
-  content: '';
-  position: absolute;
-  bottom: 0; left: 0;
-  width: 0; height: 2px;
-  background: var(--accent);
-  transition: width 200ms ease-out;
-}
-
-.nav__links a:hover::after {
-  width: 100%;
-}
-
-.nav__cta {
-  display: inline-block;
-  background: var(--black);
-  color: var(--white);
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  padding: 0.75rem 1.5rem;
-  border: none;
-  cursor: pointer;
-  transition: background 200ms ease-out;
-  text-decoration: none;
-}
-
-.nav__cta:hover {
-  background: var(--accent);
-}
-
-@media (min-width: 768px) {
-  .nav__links {
-    display: flex;
-  }
-}
-
-/* ============================================
-   HERO
-   ============================================ */
-.hero {
-  border-bottom: 4px solid var(--black);
-  overflow: hidden;
-}
-
-.hero__inner {
-  display: grid;
-  grid-template-columns: 1fr;
-  min-height: calc(100vh - 68px);
-}
-
-.hero__content {
-  padding: 3rem 1.5rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.hero__headline {
-  font-size: clamp(3.5rem, 12vw, 10rem);
-  line-height: 0.85;
-  letter-spacing: -0.04em;
-  margin-bottom: 1.5rem;
-}
-
-.hero__headline em {
-  font-style: normal;
-  color: var(--accent);
-  display: block;
-}
-
-.hero__sub {
-  font-size: clamp(1rem, 2vw, 1.25rem);
-  font-weight: 400;
-  line-height: 1.5;
-  max-width: 520px;
-  margin-bottom: 2.5rem;
-  color: #333;
-}
-
-.hero__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-family: var(--font);
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  padding: 1rem 2rem;
-  border: 4px solid var(--black);
-  cursor: pointer;
-  transition: all 200ms ease-out;
-  text-decoration: none;
-  min-height: 56px;
-}
-
-.btn--primary {
-  background: var(--black);
-  color: var(--white);
-}
-
-.btn--primary:hover {
-  background: var(--accent);
-  border-color: var(--accent);
-}
-
-.btn--secondary {
-  background: var(--white);
-  color: var(--black);
-}
-
-.btn--secondary:hover {
-  background: var(--black);
-  color: var(--white);
-}
-
-.hero__geo {
-  display: none;
-  position: relative;
-  background: var(--muted);
-  overflow: hidden;
-}
-
-.hero__geo::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background-image:
-    linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px);
-  background-size: 24px 24px;
-}
-
-/* Geometric shapes */
-.geo-circle {
-  position: absolute;
-  width: clamp(200px, 20vw, 350px);
-  height: clamp(200px, 20vw, 350px);
-  border-radius: 50%;
-  background: var(--accent);
-  top: 15%;
-  left: 20%;
-}
-
-.geo-rect {
-  position: absolute;
-  width: clamp(140px, 14vw, 240px);
-  height: clamp(220px, 22vw, 380px);
-  background: var(--black);
-  bottom: 15%;
-  right: 15%;
-}
-
-.geo-line-h {
-  position: absolute;
-  width: 60%;
-  height: 4px;
-  background: var(--black);
-  top: 55%;
-  left: 10%;
-}
-
-.geo-line-v {
-  position: absolute;
-  width: 4px;
-  height: 40%;
-  background: var(--accent);
-  top: 20%;
-  right: 35%;
-}
-
-.geo-square {
-  position: absolute;
-  width: clamp(80px, 8vw, 120px);
-  height: clamp(80px, 8vw, 120px);
-  border: 4px solid var(--black);
-  top: 60%;
-  left: 35%;
-}
-
-@media (min-width: 768px) {
-  .hero__content {
-    padding: 4rem 3rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  .hero__inner {
-    grid-template-columns: 7fr 5fr;
-  }
-  .hero__content {
-    padding: 6rem 4rem;
-  }
-  .hero__geo {
-    display: block;
-    border-left: 4px solid var(--black);
-  }
-}
-
-/* ============================================
-   ABOUT
-   ============================================ */
-.about {
-  background: var(--muted);
-  border-bottom: 4px solid var(--black);
-}
-
-.about__inner {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 0;
-}
-
-.about__content {
-  padding: 4rem 1.5rem;
-}
-
-.about__headline {
-  font-size: clamp(2rem, 5vw, 4rem);
-  margin-bottom: 2rem;
-  max-width: 600px;
-}
-
-.about__text {
-  font-size: 1.05rem;
-  line-height: 1.7;
-  max-width: 560px;
-  color: #222;
-  margin-bottom: 1.5rem;
-}
-
-.about__geo {
-  display: none;
-  position: relative;
-  background: var(--white);
-  min-height: 300px;
-  overflow: hidden;
-}
-
-.about__geo::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background-image: radial-gradient(circle, rgba(0,0,0,0.04) 1px, transparent 1px);
-  background-size: 16px 16px;
-}
-
-.about__geo-circle {
-  position: absolute;
-  width: 180px; height: 180px;
-  border: 4px solid var(--black);
-  border-radius: 50%;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.about__geo-dot {
-  position: absolute;
-  width: 24px; height: 24px;
-  background: var(--accent);
-  border-radius: 50%;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-@media (min-width: 768px) {
-  .about__content {
-    padding: 5rem 3rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  .about__inner {
-    grid-template-columns: 7fr 5fr;
-  }
-  .about__content {
-    padding: 6rem 4rem;
-  }
-  .about__geo {
-    display: block;
-    border-left: 4px solid var(--black);
-  }
-}
-
-/* ============================================
-   FEATURES
-   ============================================ */
-.features {
-  border-bottom: 4px solid var(--black);
-}
-
-.features__header {
-  padding: 4rem 1.5rem 2rem;
-}
-
-.features__headline {
-  font-size: clamp(2.5rem, 6vw, 5rem);
-}
-
-.features__grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  border-top: 4px solid var(--black);
-}
-
-.feature-card {
-  padding: 2rem 1.5rem;
-  border-bottom: 2px solid var(--black);
-  transition: all 200ms ease-out;
-  position: relative;
-}
-
-.feature-card:hover {
-  background: var(--black);
-  color: var(--white);
-}
-
-.feature-card__num {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--accent);
-  letter-spacing: 0.15em;
-  margin-bottom: 1rem;
-  transition: color 200ms ease-out;
-}
-
-.feature-card:hover .feature-card__num {
-  color: var(--accent);
-}
-
-.feature-card__icon {
-  font-size: 1.5rem;
-  margin-bottom: 0.75rem;
-  display: block;
-}
-
-.feature-card__title {
-  font-size: 1.1rem;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 0.75rem;
-  line-height: 1.1;
-}
-
-.feature-card__desc {
-  font-size: 0.9rem;
-  line-height: 1.5;
-  opacity: 0.8;
-}
-
-@media (min-width: 640px) {
-  .features__grid {
-    grid-template-columns: 1fr 1fr;
-  }
-  .feature-card:nth-child(odd) {
-    border-right: 2px solid var(--black);
-  }
-}
-
-@media (min-width: 768px) {
-  .features__header {
-    padding: 5rem 3rem 2.5rem;
-  }
-  .feature-card {
-    padding: 2.5rem 2rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  .features__header {
-    padding: 6rem 4rem 3rem;
-  }
-  .features__grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-  .feature-card {
-    padding: 3rem 2rem;
-    border-right: 2px solid var(--black);
-  }
-  .feature-card:nth-child(4n) {
-    border-right: none;
-  }
-  .feature-card:nth-child(odd) {
-    border-right: 2px solid var(--black);
-  }
-  .feature-card:nth-child(4) {
-    border-right: none;
-  }
-  .feature-card:nth-child(n+5) {
-    border-top: none;
-  }
-}
-
-/* ============================================
-   STATS
-   ============================================ */
-.stats {
-  background: var(--black);
-  color: var(--white);
-  border-bottom: 4px solid var(--black);
-  position: relative;
-}
-
-.stats::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background-image:
-    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-  background-size: 24px 24px;
-  pointer-events: none;
-}
-
-.stats__grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  position: relative;
-  z-index: 1;
-}
-
-.stat {
-  padding: 3rem 1.5rem;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-  text-align: left;
-}
-
-.stat:nth-child(odd) {
-  border-right: 1px solid rgba(255,255,255,0.1);
-}
-
-.stat__value {
-  font-size: clamp(2.5rem, 6vw, 4rem);
-  font-weight: 900;
-  letter-spacing: -0.03em;
-  text-transform: uppercase;
-  line-height: 1;
-  margin-bottom: 0.5rem;
-}
-
-.stat__label {
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  opacity: 0.5;
-}
-
-@media (min-width: 768px) {
-  .stat {
-    padding: 4rem 3rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  .stats__grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-  .stat {
-    padding: 5rem 3rem;
-    border-bottom: none;
-    border-right: 1px solid rgba(255,255,255,0.1);
-  }
-  .stat:last-child {
-    border-right: none;
-  }
-}
-
-/* ============================================
-   HOW IT WORKS
-   ============================================ */
-.process {
-  border-bottom: 4px solid var(--black);
-  position: relative;
-}
-
-.process__header {
-  padding: 4rem 1.5rem 2rem;
-}
-
-.process__headline {
-  font-size: clamp(2.5rem, 6vw, 5rem);
-}
-
-.process__steps {
-  display: grid;
-  grid-template-columns: 1fr;
-  border-top: 4px solid var(--black);
-}
-
-.step {
-  padding: 3rem 1.5rem;
-  border-bottom: 2px solid var(--black);
-  position: relative;
-}
-
-.step::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  pointer-events: none;
-  opacity: 0;
-}
-
-.step:nth-child(1)::before {
-  background-image: repeating-linear-gradient(
-    45deg, transparent, transparent 4px,
-    rgba(0,0,0,0.02) 4px, rgba(0,0,0,0.02) 5px
-  );
-  opacity: 1;
-}
-
-.step:nth-child(2) {
-  background: var(--muted);
-}
-
-.step:nth-child(2)::before {
-  background-image: radial-gradient(circle, rgba(0,0,0,0.04) 1px, transparent 1px);
-  background-size: 16px 16px;
-  opacity: 1;
-}
-
-.step:nth-child(3)::before {
-  background-image:
-    linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px);
-  background-size: 24px 24px;
-  opacity: 1;
-}
-
-.step__num {
-  font-size: clamp(4rem, 10vw, 8rem);
-  font-weight: 900;
-  color: var(--accent);
-  line-height: 0.85;
-  letter-spacing: -0.05em;
-  margin-bottom: 1rem;
-  position: relative;
-}
-
-.step__title {
-  font-size: clamp(1.5rem, 3vw, 2.5rem);
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: -0.02em;
-  margin-bottom: 1rem;
-  position: relative;
-}
-
-.step__desc {
-  font-size: 1rem;
-  line-height: 1.6;
-  max-width: 480px;
-  opacity: 0.7;
-  position: relative;
-}
-
-@media (min-width: 768px) {
-  .process__header {
-    padding: 5rem 3rem 2.5rem;
-  }
-  .step {
-    padding: 4rem 3rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  .process__header {
-    padding: 6rem 4rem 3rem;
-  }
-  .process__steps {
-    grid-template-columns: repeat(3, 1fr);
-  }
-  .step {
-    padding: 5rem 3rem;
-    border-right: 2px solid var(--black);
-    border-bottom: none;
-  }
-  .step:last-child {
-    border-right: none;
-  }
-}
-
-/* ============================================
-   TECH STACK
-   ============================================ */
-.tech {
-  background: var(--muted);
-  border-bottom: 4px solid var(--black);
-  position: relative;
-}
-
-.tech::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background-image: radial-gradient(circle, rgba(0,0,0,0.04) 1px, transparent 1px);
-  background-size: 16px 16px;
-  pointer-events: none;
-}
-
-.tech__inner {
-  padding: 4rem 1.5rem;
-  position: relative;
-  z-index: 1;
-}
-
-.tech__headline {
-  font-size: clamp(2rem, 5vw, 4rem);
-  margin-bottom: 2.5rem;
-}
-
-.tech__grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 0;
-}
-
-.tech-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 0;
-  border-bottom: 2px solid var(--black);
-}
-
-.tech-item__label {
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  opacity: 0.5;
-}
-
-.tech-item__value {
-  font-size: 1rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-@media (min-width: 768px) {
-  .tech__inner {
-    padding: 5rem 3rem;
-  }
-  .tech__grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 0 3rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  .tech__inner {
-    padding: 6rem 4rem;
-  }
-}
-
-/* ============================================
-   DOWNLOAD CTA
-   ============================================ */
-.download {
-  background: var(--black);
-  color: var(--white);
-  border-bottom: 4px solid var(--black);
-  position: relative;
-  overflow: hidden;
-}
-
-.download::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background-image:
-    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-  background-size: 24px 24px;
-  pointer-events: none;
-}
-
-/* Red accent bar */
-.download::after {
-  content: '';
-  position: absolute;
-  top: 0; right: 0;
-  width: clamp(60px, 8vw, 120px);
-  height: 100%;
-  background: var(--accent);
-}
-
-.download__inner {
-  padding: 5rem 1.5rem;
-  position: relative;
-  z-index: 1;
-}
-
-.download__headline {
-  font-size: clamp(3rem, 10vw, 8rem);
-  letter-spacing: -0.04em;
-  margin-bottom: 1.5rem;
-  line-height: 0.85;
-}
-
-.download__sub {
-  font-size: 1.1rem;
-  opacity: 0.6;
-  margin-bottom: 3rem;
-  max-width: 500px;
-}
-
-.download__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.btn--download {
-  background: var(--accent);
-  color: var(--white);
-  border-color: var(--accent);
-  font-size: 0.85rem;
-  padding: 1.25rem 2.5rem;
-}
-
-.btn--download:hover {
-  background: var(--white);
-  color: var(--black);
-  border-color: var(--white);
-}
-
-.btn--github {
-  background: transparent;
-  color: var(--white);
-  border-color: rgba(255,255,255,0.3);
-}
-
-.btn--github:hover {
-  border-color: var(--white);
-  background: var(--white);
-  color: var(--black);
-}
-
-.download__version {
-  margin-top: 2rem;
-  font-size: 0.75rem;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  opacity: 0.4;
-}
-
-@media (min-width: 768px) {
-  .download__inner {
-    padding: 6rem 3rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  .download__inner {
-    padding: 8rem 4rem;
-  }
-}
-
-/* ============================================
-   FOOTER
-   ============================================ */
-.footer {
-  background: var(--black);
-  color: var(--white);
-  position: relative;
-}
-
-.footer::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background-image:
-    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-  background-size: 24px 24px;
-  pointer-events: none;
-}
-
-.footer__inner {
-  padding: 3rem 1.5rem;
-  position: relative;
-  z-index: 1;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 2rem;
-  border-top: 1px solid rgba(255,255,255,0.1);
-}
-
-.footer__brand {
-  font-size: 1.25rem;
-  font-weight: 900;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.footer__brand span {
-  color: var(--accent);
-}
-
-.footer__text {
-  font-size: 0.8rem;
-  opacity: 0.4;
-  line-height: 1.6;
-}
-
-.footer__links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.5rem;
-}
-
-.footer__links a {
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  opacity: 0.5;
-  transition: opacity 200ms ease-out, color 200ms ease-out;
-}
-
-.footer__links a:hover {
-  opacity: 1;
-  color: var(--accent);
-}
-
-.footer__copy {
-  font-size: 0.7rem;
-  opacity: 0.3;
-  letter-spacing: 0.1em;
-}
-
-@media (min-width: 768px) {
-  .footer__inner {
-    padding: 4rem 3rem;
-    grid-template-columns: 1fr auto;
-    align-items: start;
-  }
-}
-
-@media (min-width: 1024px) {
-  .footer__inner {
-    padding: 4rem;
-    grid-template-columns: 1fr 1fr 1fr;
-  }
-}
-
-/* ============================================
-   REDUCED MOTION
-   ============================================ */
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-}
-
-/* ============================================
-   MOBILE MENU
-   ============================================ */
-.nav__toggle {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0.5rem;
-}
-
-.nav__toggle span {
-  width: 24px;
-  height: 2px;
-  background: var(--black);
-  transition: all 200ms ease-out;
-}
-
-@media (min-width: 768px) {
-  .nav__toggle {
-    display: none;
-  }
-}
-
-/* ============================================
-   ANDROID BADGE
-   ============================================ */
-.android-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--accent);
-  margin-bottom: 1.5rem;
-  border: 2px solid var(--accent);
-  padding: 0.35rem 0.75rem;
-}
-
-/* Arrow icon in buttons */
-.btn svg {
-  width: 14px;
-  height: 14px;
-  fill: currentColor;
-  transition: transform 200ms ease-out;
-}
-
-.btn:hover svg {
-  transform: translateX(3px);
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Signal Aid | Emergency Signal Preemption</title>
+  <meta name="description" content="ML-powered emergency signal preemption. Navigate traffic. Clear intersections. Save lives.">
+  
+  <!-- Dynamic SVG Favicon representing the app icon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='grad' x1='0%' y1='0%' x2='0%' y2='100%'><stop offset='0%' stop-color='%23E11D48'/><stop offset='100%' stop-color='%23B3122F'/></linearGradient></defs><rect width='100' height='100' rx='25' fill='url(%23grad)'/><path d='M35 50 h30 M50 35 v30' stroke='white' stroke-width='10' stroke-linecap='round'/></svg>">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bg: '#0A0D14',
+            surface: '#121722',
+            surface2: '#1A2030',
+            primary: '#E11D48',
+            primaryDeep: '#B3122F',
+            signalRed: '#EF4444',
+            signalAmber: '#F5A623',
+            signalGreen: '#22C55E',
+            textMain: '#F5F7FA',
+            textMuted: '#98A2B3',
+            borderOutline: 'rgba(255,255,255,0.08)'
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          animation: {
+            'breathe': 'breathe 4s ease-in-out infinite',
+            'sweep': 'sweep 3s linear infinite',
+            'pulse-slow': 'pulse-slow 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+          },
+          keyframes: {
+            breathe: {
+              '0%, 100%': { transform: 'scale(1)', opacity: '0.4' },
+              '50%': { transform: 'scale(1.05)', opacity: '0.7' },
+            },
+            sweep: {
+              '0%': { backgroundPosition: '200% center' },
+              '100%': { backgroundPosition: '-200% center' },
+            },
+            'pulse-slow': {
+              '0%, 100%': { opacity: '1' },
+              '50%': { opacity: '.5' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Custom CSS for components and reveals -->
+  <style>
+    body {
+      background-color: #0A0D14;
+      color: #F5F7FA;
+    }
+    
+    /* Scroll Reveal Classes */
+    .reveal {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .reveal.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Staggered delays */
+    .delay-100 { transition-delay: 100ms; }
+    .delay-200 { transition-delay: 200ms; }
+    .delay-300 { transition-delay: 300ms; }
+
+    /* Custom Scrollbar for Carousel */
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Bento hover lift */
+    .bento-card {
+      transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .bento-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(255,255,255,0.2);
+    }
+
+    /* Focus rings */
+    *:focus-visible {
+      outline: 2px solid #E11D48;
+      outline-offset: 4px;
+      border-radius: 4px;
+    }
+
+    .bg-grid {
+      background-size: 40px 40px;
+      background-image: linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    }
+
+    /* Animated gradient text for Sweep */
+    .text-gradient-sweep {
+      background: linear-gradient(90deg, #EF4444, #F5A623, #22C55E, #EF4444);
+      background-size: 300% auto;
+      color: transparent;
+      -webkit-background-clip: text;
+      background-clip: text;
+    }
+  </style>
 </head>
-<body>
+<body class="antialiased selection:bg-primary selection:text-white relative bg-grid">
+  
+  <!-- Subtle ambient glow in background -->
+  <div class="fixed top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/10 rounded-full blur-[120px] pointer-events-none z-[-1]"></div>
 
-<!-- ============================================
-     NAVIGATION
-     ============================================ -->
-<nav class="nav" role="navigation" aria-label="Main navigation">
-  <div class="container nav__inner">
-    <a href="#" class="nav__logo" aria-label="Signal Aid Home">SIGNAL<span>AID</span></a>
-
-    <ul class="nav__links">
-      <li><a href="#about">System</a></li>
-      <li><a href="#features">Capabilities</a></li>
-      <li><a href="#process">Process</a></li>
-      <li><a href="#tech">Stack</a></li>
-    </ul>
-
-    <a href="https://github.com/NavDevs/Signal-Aid/releases/download/v3.0.0/Signal-Aid-v3.0.0.apk" class="nav__cta" aria-label="Download Signal Aid APK">DOWNLOAD APK</a>
-  </div>
-</nav>
-
-<!-- ============================================
-     HERO
-     ============================================ -->
-<section class="hero" id="hero">
-  <div class="hero__inner">
-    <div class="hero__content container">
-      <span class="section-label">01. SYSTEM</span>
-      <div class="android-badge">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M17.523 15.341a.96.96 0 0 0-.96.96v2.879a.96.96 0 0 0 1.92 0v-2.879a.96.96 0 0 0-.96-.96zm-11.046 0a.96.96 0 0 0-.96.96v2.879a.96.96 0 1 0 1.92 0v-2.879a.96.96 0 0 0-.96-.96zm11.126-6.32-.87-1.681a.24.24 0 0 0-.426.216l.882 1.703a6.478 6.478 0 0 0-2.689 1.056 6.478 6.478 0 0 0-2.5-.504 6.478 6.478 0 0 0-2.5.504 6.478 6.478 0 0 0-2.689-1.056l.882-1.703a.24.24 0 0 0-.426-.216l-.87 1.681C6.556 10.5 5.5 12.202 5.5 14.141h13c0-1.939-1.056-3.641-2.897-5.12zM9.5 12.861a.72.72 0 1 1 .72-.72.72.72 0 0 1-.72.72zm5 0a.72.72 0 1 1 .72-.72.72.72 0 0 1-.72.72zM5.5 15.341h13v5.279a1.44 1.44 0 0 1-1.44 1.44H6.94a1.44 1.44 0 0 1-1.44-1.44v-5.279z"/></svg>
-        ANDROID APP
-      </div>
-      <h1 class="hero__headline">
-        EVERY<br>SECOND<br><em>COUNTS</em>
-      </h1>
-      <p class="hero__sub">
-        ML-powered emergency signal preemption. Navigate traffic. Clear intersections. Save lives.
-      </p>
-      <div class="hero__actions">
-        <a href="https://github.com/NavDevs/Signal-Aid/releases/download/v3.0.0/Signal-Aid-v3.0.0.apk" class="btn btn--primary" aria-label="Download Signal Aid APK version 3.0.0">
-          DOWNLOAD v3.0.0
-          <svg viewBox="0 0 24 24" width="14" height="14"><path d="M12 16l-5-5h3V4h4v7h3l-5 5zm-7 4h14v2H5v-2z"/></svg>
-        </a>
-        <a href="https://github.com/NavDevs/Signal-Aid" target="_blank" rel="noopener noreferrer" class="btn btn--secondary">
-          VIEW ON GITHUB
-          <svg viewBox="0 0 24 24" width="14" height="14"><path d="M5 12h14m-7-7l7 7-7 7"/></svg>
-        </a>
-      </div>
-    </div>
-    <div class="hero__geo" aria-hidden="true">
-      <div class="geo-circle"></div>
-      <div class="geo-rect"></div>
-      <div class="geo-line-h"></div>
-      <div class="geo-line-v"></div>
-      <div class="geo-square"></div>
-    </div>
-  </div>
-</section>
-
-<!-- ============================================
-     ABOUT
-     ============================================ -->
-<section class="about" id="about">
-  <div class="about__inner">
-    <div class="about__content">
-      <span class="section-label">02. METHOD</span>
-      <h2 class="about__headline">INTELLIGENT EMERGENCY RESPONSE</h2>
-      <p class="about__text">
-        Signal Aid is an emergency response system built with Flutter that empowers ambulance and fire truck drivers to navigate urban traffic with unprecedented speed. Using machine learning, the app preempts traffic signals along emergency routes in real time.
-      </p>
-      <p class="about__text">
-        From the moment a dispatch is accepted, Signal Aid calculates the optimal route, clears intersections ahead, and provides live tracking — reducing response times when every second matters.
-      </p>
-    </div>
-    <div class="about__geo" aria-hidden="true">
-      <div class="about__geo-circle"></div>
-      <div class="about__geo-dot"></div>
-    </div>
-  </div>
-</section>
-
-<!-- ============================================
-     FEATURES
-     ============================================ -->
-<section class="features" id="features">
-  <div class="features__header container">
-    <span class="section-label">03. CAPABILITIES</span>
-    <h2 class="features__headline">THE SYSTEM</h2>
-  </div>
-  <div class="features__grid">
-
-    <div class="feature-card">
-      <span class="feature-card__num">01</span>
-      <span class="feature-card__icon" aria-hidden="true">&#x1F512;</span>
-      <h3 class="feature-card__title">Driver Authentication</h3>
-      <p class="feature-card__desc">Secure login with Driver ID and Vehicle Number. Role-based access ensures only authorized personnel operate the system.</p>
-    </div>
-
-    <div class="feature-card">
-      <span class="feature-card__num">02</span>
-      <span class="feature-card__icon" aria-hidden="true">&#x1F5FA;</span>
-      <h3 class="feature-card__title">Dispatch Planning</h3>
-      <p class="feature-card__desc">Real-time route planning with ETA calculation. Accept emergency dispatches and receive optimized navigation instantly.</p>
-    </div>
-
-    <div class="feature-card">
-      <span class="feature-card__num">03</span>
-      <span class="feature-card__icon" aria-hidden="true">&#x26A1;</span>
-      <h3 class="feature-card__title">Criticality Levels</h3>
-      <p class="feature-card__desc">Choose between Normal, High, and Critical emergency levels. The system adapts route priority and signal preemption urgency accordingly.</p>
-    </div>
-
-    <div class="feature-card">
-      <span class="feature-card__num">04</span>
-      <span class="feature-card__icon" aria-hidden="true">&#x1F6A6;</span>
-      <h3 class="feature-card__title">Signal Preemption</h3>
-      <p class="feature-card__desc">ML-powered traffic signal clearing for emergency vehicles. Intersections are preempted in real time to create a clear corridor.</p>
-    </div>
-
-    <div class="feature-card">
-      <span class="feature-card__num">05</span>
-      <span class="feature-card__icon" aria-hidden="true">&#x23F1;</span>
-      <h3 class="feature-card__title">Live Tracking</h3>
-      <p class="feature-card__desc">Real-time countdown timer with intersection status updates. Monitor every signal change as you approach.</p>
-    </div>
-
-    <div class="feature-card">
-      <span class="feature-card__num">06</span>
-      <span class="feature-card__icon" aria-hidden="true">&#x1F4E1;</span>
-      <h3 class="feature-card__title">Live Dispatch</h3>
-      <p class="feature-card__desc">Socket.IO pushes new emergency requests the instant a citizen reports them. No polling, no delays — instant notification.</p>
-    </div>
-
-    <div class="feature-card">
-      <span class="feature-card__num">07</span>
-      <span class="feature-card__icon" aria-hidden="true">&#x1F4CA;</span>
-      <h3 class="feature-card__title">Trip History</h3>
-      <p class="feature-card__desc">Complete log of all emergency responses with statistics. Review past trips, response times, and route efficiency.</p>
-    </div>
-
-    <div class="feature-card">
-      <span class="feature-card__num">08</span>
-      <span class="feature-card__icon" aria-hidden="true">&#x1F319;</span>
-      <h3 class="feature-card__title">Dark Theme</h3>
-      <p class="feature-card__desc">Eye-friendly dark UI optimized for emergency vehicle cockpits. Reduced glare during night operations.</p>
-    </div>
-
-  </div>
-</section>
-
-<!-- ============================================
-     STATS
-     ============================================ -->
-<section class="stats" aria-label="Key statistics">
-  <div class="stats__grid">
-    <div class="stat">
-      <div class="stat__value">v3.0</div>
-      <div class="stat__label">Latest Version</div>
-    </div>
-    <div class="stat">
-      <div class="stat__value">50MB</div>
-      <div class="stat__label">Download Size</div>
-    </div>
-    <div class="stat">
-      <div class="stat__value">Flutter</div>
-      <div class="stat__label">Built With</div>
-    </div>
-    <div class="stat">
-      <div class="stat__value">MIT</div>
-      <div class="stat__label">License</div>
-    </div>
-  </div>
-</section>
-
-<!-- ============================================
-     HOW IT WORKS
-     ============================================ -->
-<section class="process" id="process">
-  <div class="process__header container">
-    <span class="section-label">04. PROCESS</span>
-    <h2 class="process__headline">HOW IT WORKS</h2>
-  </div>
-  <div class="process__steps">
-
-    <div class="step">
-      <div class="step__num">01</div>
-      <h3 class="step__title">Authenticate</h3>
-      <p class="step__desc">Driver logs in with secure credentials — Driver ID and assigned Vehicle Number. The system validates identity and connects to dispatch.</p>
-    </div>
-
-    <div class="step">
-      <div class="step__num">02</div>
-      <h3 class="step__title">Dispatch</h3>
-      <p class="step__desc">Accept incoming emergency requests in real time. The system calculates the optimal route, sets criticality level, and prepares signal preemption.</p>
-    </div>
-
-    <div class="step">
-      <div class="step__num">03</div>
-      <h3 class="step__title">Navigate</h3>
-      <p class="step__desc">ML clears traffic signals ahead of your route. Real-time tracking guides you through every intersection with live countdown and status updates.</p>
-    </div>
-
-  </div>
-</section>
-
-<!-- ============================================
-     TECH STACK
-     ============================================ -->
-<section class="tech" id="tech">
-  <div class="tech__inner container">
-    <span class="section-label">05. ARCHITECTURE</span>
-    <h2 class="tech__headline">TECH STACK</h2>
-    <div class="tech__grid">
-      <div class="tech-item">
-        <span class="tech-item__label">Framework</span>
-        <span class="tech-item__value">Flutter 3.27</span>
-      </div>
-      <div class="tech-item">
-        <span class="tech-item__label">Language</span>
-        <span class="tech-item__value">Dart 3.6</span>
-      </div>
-      <div class="tech-item">
-        <span class="tech-item__label">State</span>
-        <span class="tech-item__value">Provider</span>
-      </div>
-      <div class="tech-item">
-        <span class="tech-item__label">Backend</span>
-        <span class="tech-item__value">Supabase</span>
-      </div>
-      <div class="tech-item">
-        <span class="tech-item__label">Real-time</span>
-        <span class="tech-item__value">Socket.IO</span>
-      </div>
-      <div class="tech-item">
-        <span class="tech-item__label">Storage</span>
-        <span class="tech-item__value">SharedPreferences</span>
-      </div>
-      <div class="tech-item">
-        <span class="tech-item__label">Build</span>
-        <span class="tech-item__value">Gradle 8.12</span>
-      </div>
-      <div class="tech-item">
-        <span class="tech-item__label">Platform</span>
-        <span class="tech-item__value">Android API 21+</span>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ============================================
-     DOWNLOAD CTA
-     ============================================ -->
-<section class="download" id="download">
-  <div class="download__inner container">
-    <span class="section-label" style="color: var(--accent);">06. DEPLOY</span>
-    <h2 class="download__headline">DOWNLOAD<br>NOW</h2>
-    <p class="download__sub">Get Signal Aid v3.0.0 for Android. Free, open source, MIT licensed.</p>
-    <div class="download__actions">
-      <a href="https://github.com/NavDevs/Signal-Aid/releases/download/v3.0.0/Signal-Aid-v3.0.0.apk" class="btn btn--download" aria-label="Download Signal Aid APK version 3.0.0">
-        DOWNLOAD APK — 50.3 MB
-        <svg viewBox="0 0 24 24" width="14" height="14"><path d="M12 16l-5-5h3V4h4v7h3l-5 5zm-7 4h14v2H5v-2z"/></svg>
+  <!-- 1. STICKY GLASS NAVBAR -->
+  <nav class="fixed top-0 w-full z-50 bg-bg/80 backdrop-blur-md border-b border-borderOutline">
+    <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+      <a href="#" class="flex items-center gap-2 group" aria-label="Signal Aid Home">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-b from-primary to-primaryDeep flex items-center justify-center shadow-[0_0_15px_rgba(225,29,72,0.5)]">
+          <!-- Cross icon -->
+          <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+        </div>
+        <span class="font-bold tracking-tight text-lg group-hover:text-primary transition-colors">Signal Aid</span>
       </a>
-      <a href="https://github.com/NavDevs/Signal-Aid" target="_blank" rel="noopener noreferrer" class="btn btn--github">
-        VIEW ON GITHUB
-        <svg viewBox="0 0 24 24" width="14" height="14"><path d="M5 12h14m-7-7l7 7-7 7" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+      <div class="hidden md:flex gap-6 items-center text-sm font-medium text-textMuted">
+        <a href="#features" class="hover:text-textMain transition-colors">Features</a>
+        <a href="#process" class="hover:text-textMain transition-colors">How it works</a>
+        <a href="#criticality" class="hover:text-textMain transition-colors">Criticality</a>
+        <a href="#tech" class="hover:text-textMain transition-colors">Tech</a>
+      </div>
+      <a href="https://github.com/NavDevs/Signal-Aid/releases/download/v3.0.0/Signal-Aid-v3.0.0.apk" class="bg-primary hover:bg-primaryDeep text-white text-sm font-semibold py-2 px-4 rounded-xl transition-all shadow-[0_0_10px_rgba(225,29,72,0.3)] hover:shadow-[0_0_20px_rgba(225,29,72,0.6)]">
+        Download APK
       </a>
     </div>
-    <p class="download__version">Signal-Aid-v3.0.0.apk · Android 5.0+ · Open Source</p>
-  </div>
-</section>
+  </nav>
 
-<!-- ============================================
-     FOOTER
-     ============================================ -->
-<footer class="footer">
-  <div class="footer__inner container">
-    <div>
-      <div class="footer__brand">SIGNAL<span>AID</span></div>
-      <p class="footer__text" style="margin-top: 0.75rem;">Emergency response system.<br>Built by NavDevs.</p>
-    </div>
-    <div class="footer__links">
-      <a href="https://github.com/NavDevs/Signal-Aid" target="_blank" rel="noopener noreferrer">GitHub</a>
-      <a href="https://github.com/NavDevs/Signal-Aid/releases" target="_blank" rel="noopener noreferrer">Releases</a>
-      <a href="https://github.com/NavDevs/Signal-Aid/issues" target="_blank" rel="noopener noreferrer">Issues</a>
-    </div>
-    <div>
-      <p class="footer__copy">&copy; 2026 NavDevs. MIT License.</p>
-    </div>
-  </div>
-</footer>
+  <!-- 2. HERO -->
+  <header class="pt-32 pb-20 md:pt-40 md:pb-32 px-6 overflow-hidden relative">
+    <div class="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center">
+      
+      <!-- Copy -->
+      <div class="reveal">
+        <div class="inline-block border border-primary/30 bg-primary/10 text-primary text-xs font-bold tracking-[0.12em] uppercase py-1 px-3 rounded-full mb-6">
+          Android app for emergency responders
+        </div>
+        <h1 class="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.1] mb-6">
+          Every second <br>
+          <span class="text-gradient-sweep animate-sweep">counts.</span>
+        </h1>
+        <p class="text-textMuted text-lg md:text-xl max-w-lg mb-8 leading-relaxed">
+          ML-powered emergency signal preemption. Navigate traffic. Clear intersections. Save lives.
+        </p>
+        
+        <div class="flex flex-wrap gap-4 mb-10">
+          <a href="https://github.com/NavDevs/Signal-Aid/releases/download/v3.0.0/Signal-Aid-v3.0.0.apk" class="bg-primary hover:bg-primaryDeep text-white font-semibold py-3 px-6 rounded-xl transition-all shadow-[0_0_15px_rgba(225,29,72,0.4)] hover:shadow-[0_0_25px_rgba(225,29,72,0.7)] flex items-center gap-2">
+            Download v3.0.0
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+          </a>
+          <a href="https://github.com/NavDevs/Signal-Aid" target="_blank" rel="noopener" class="bg-surface hover:bg-surface2 border border-borderOutline text-textMain font-semibold py-3 px-6 rounded-xl transition-all flex items-center gap-2">
+            View on GitHub
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"></path></svg>
+          </a>
+        </div>
+        
+        <!-- Trust Chips -->
+        <div class="flex items-center gap-4 text-xs font-mono text-textMuted flex-wrap">
+          <span class="flex items-center gap-1"><svg class="w-3 h-3 text-signalGreen" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg> Android 5.0+</span>
+          <span class="flex items-center gap-1"><svg class="w-3 h-3 text-signalGreen" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg> Free</span>
+          <span class="flex items-center gap-1"><svg class="w-3 h-3 text-signalGreen" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg> Open Source (MIT)</span>
+        </div>
+      </div>
 
+      <!-- Graphics -->
+      <div class="relative reveal delay-200 mt-12 md:mt-0 flex justify-center">
+        <!-- Glowing rays -->
+        <div class="absolute inset-0 flex items-center justify-center -z-10 animate-breathe mix-blend-screen">
+          <div class="absolute w-[150%] h-1 bg-signalRed rotate-45 opacity-30 blur-md"></div>
+          <div class="absolute w-[150%] h-1 bg-signalAmber -rotate-45 opacity-30 blur-md"></div>
+          <div class="absolute w-1 h-[150%] bg-signalGreen opacity-30 blur-md"></div>
+        </div>
+        
+        <!-- Mockup -->
+        <div class="relative w-[280px] h-[580px] bg-surface2 rounded-[40px] border-[8px] border-surface shadow-2xl overflow-hidden flex flex-col">
+          <!-- Top bar -->
+          <div class="h-6 w-full flex justify-center pt-2 relative z-10">
+            <div class="w-1/3 h-4 bg-bg rounded-b-xl"></div>
+          </div>
+          <!-- Mock Content -->
+          <div class="flex-1 bg-bg p-4 flex flex-col gap-4 relative">
+            <div class="h-32 rounded-2xl bg-surface border border-borderOutline flex flex-col items-center justify-center relative overflow-hidden">
+              <!-- Map placeholder -->
+              <div class="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+PHBhdGggZD0iTTAgMGgyMHYyMEgwem0xMCAxMGgxMHYxMEgxMHoiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iLjEiLz48L3N2Zz4=')]"></div>
+              <div class="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center text-primary mb-2 animate-pulse-slow shadow-[0_0_20px_rgba(225,29,72,0.5)]">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path></svg>
+              </div>
+              <div class="font-mono text-sm font-bold">ROUTE ACTIVE</div>
+            </div>
+            
+            <div class="space-y-3">
+              <div class="h-16 rounded-xl bg-surface border border-borderOutline flex items-center px-4 gap-3">
+                <div class="w-8 h-8 rounded-full bg-signalRed/20 text-signalRed flex items-center justify-center">
+                  <span class="w-3 h-3 bg-signalRed rounded-full shadow-[0_0_8px_#EF4444]"></span>
+                </div>
+                <div>
+                  <div class="text-xs text-textMuted uppercase font-bold tracking-wider">INT-492</div>
+                  <div class="text-sm font-mono text-white">Preempting...</div>
+                </div>
+              </div>
+              <div class="h-16 rounded-xl bg-surface border border-borderOutline flex items-center px-4 gap-3">
+                <div class="w-8 h-8 rounded-full bg-signalAmber/20 text-signalAmber flex items-center justify-center">
+                  <span class="w-3 h-3 bg-signalAmber rounded-full shadow-[0_0_8px_#F5A623]"></span>
+                </div>
+                <div>
+                  <div class="text-xs text-textMuted uppercase font-bold tracking-wider">INT-493</div>
+                  <div class="text-sm font-mono text-white">Approaching</div>
+                </div>
+              </div>
+              <div class="h-16 rounded-xl bg-surface border border-borderOutline flex items-center px-4 gap-3">
+                <div class="w-8 h-8 rounded-full bg-signalGreen/20 text-signalGreen flex items-center justify-center">
+                  <span class="w-3 h-3 bg-signalGreen rounded-full shadow-[0_0_8px_#22C55E]"></span>
+                </div>
+                <div>
+                  <div class="text-xs text-textMuted uppercase font-bold tracking-wider">INT-491</div>
+                  <div class="text-sm font-mono text-white">Cleared</div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Bottom sheet mock -->
+            <div class="absolute bottom-0 left-0 right-0 h-24 bg-surface2 rounded-t-3xl border-t border-borderOutline flex justify-around items-center px-6">
+              <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center shadow-[0_0_10px_rgba(225,29,72,0.4)]">
+                 <svg class="w-5 h-5 text-primary" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"></path></svg>
+              </div>
+              <div class="w-14 h-14 rounded-full bg-primary flex items-center justify-center shadow-[0_0_15px_rgba(225,29,72,0.6)] cursor-pointer">
+                 <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+              </div>
+              <div class="w-10 h-10 rounded-full bg-surface flex items-center justify-center">
+                 <svg class="w-5 h-5 text-textMuted" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"></path></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 3. PROBLEM STRIP -->
+  <section class="bg-surface border-y border-borderOutline py-10 px-6">
+    <div class="max-w-7xl mx-auto reveal">
+      <div class="text-center mb-8">
+        <h2 class="text-2xl md:text-3xl font-bold">The cost of waiting at a red light.</h2>
+        <p class="text-textMuted mt-2">Delays at intersections impact survival rates.</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 divide-y md:divide-y-0 md:divide-x divide-borderOutline text-center">
+        <div class="pt-6 md:pt-0">
+          <div class="font-mono text-3xl md:text-4xl font-bold text-white mb-2"><!-- TODO: Real stat --> ~15%</div>
+          <div class="text-sm text-textMuted uppercase tracking-widest font-semibold">Of response time</div>
+          <div class="text-xs text-textMuted mt-1">is spent at red lights on average.</div>
+        </div>
+        <div class="pt-6 md:pt-0">
+          <div class="font-mono text-3xl md:text-4xl font-bold text-signalAmber mb-2"><!-- TODO: Real stat --> 2.5x</div>
+          <div class="text-sm text-textMuted uppercase tracking-widest font-semibold">Crash Risk</div>
+          <div class="text-xs text-textMuted mt-1">higher for EMS crossing against signals.</div>
+        </div>
+        <div class="pt-6 md:pt-0">
+          <div class="font-mono text-3xl md:text-4xl font-bold text-signalRed mb-2"><!-- TODO: Real stat --> -7%</div>
+          <div class="text-sm text-textMuted uppercase tracking-widest font-semibold">Survival Rate</div>
+          <div class="text-xs text-textMuted mt-1">drop per minute of cardiac arrest delay.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. HOW IT WORKS (Timeline) -->
+  <section id="process" class="py-24 px-6 relative overflow-hidden">
+    <!-- Traffic light scroll indicator background -->
+    <div id="traffic-light-bg" class="absolute right-0 top-1/2 -translate-y-1/2 w-64 h-64 rounded-full blur-[100px] opacity-20 pointer-events-none transition-colors duration-700 bg-signalRed"></div>
+
+    <div class="max-w-7xl mx-auto">
+      <div class="mb-16 reveal">
+        <div class="text-primary text-xs font-bold tracking-[0.12em] uppercase mb-3">Process</div>
+        <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight">How it works</h2>
+      </div>
+
+      <div class="grid md:grid-cols-4 gap-8">
+        <!-- Step 1 -->
+        <div class="reveal bento-card bg-surface rounded-2xl p-6 border border-borderOutline relative overflow-hidden">
+          <div class="text-6xl font-black text-white/5 absolute -right-2 -bottom-4 pointer-events-none">1</div>
+          <div class="w-10 h-10 rounded-full bg-surface2 border border-borderOutline flex items-center justify-center font-mono font-bold mb-6">01</div>
+          <h3 class="text-lg font-bold mb-2">Login & Verify</h3>
+          <p class="text-sm text-textMuted leading-relaxed">Secure authentication with Driver ID and Vehicle Number, ensuring only authorized personnel map to dispatch units.</p>
+        </div>
+        
+        <!-- Step 2 -->
+        <div class="reveal delay-100 bento-card bg-surface rounded-2xl p-6 border border-borderOutline relative overflow-hidden">
+          <div class="text-6xl font-black text-white/5 absolute -right-2 -bottom-4 pointer-events-none">2</div>
+          <div class="w-10 h-10 rounded-full bg-surface2 border border-borderOutline flex items-center justify-center font-mono font-bold mb-6">02</div>
+          <h3 class="text-lg font-bold mb-2">Plan Dispatch</h3>
+          <p class="text-sm text-textMuted leading-relaxed">Accept an incoming emergency request. The system maps the route and calculates ETA based on live traffic data.</p>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="reveal delay-200 bento-card bg-surface rounded-2xl p-6 border border-borderOutline relative overflow-hidden">
+          <div class="text-6xl font-black text-white/5 absolute -right-2 -bottom-4 pointer-events-none">3</div>
+          <div class="w-10 h-10 rounded-full bg-surface2 border border-borderOutline flex items-center justify-center font-mono font-bold mb-6">03</div>
+          <h3 class="text-lg font-bold mb-2">Select Criticality</h3>
+          <p class="text-sm text-textMuted leading-relaxed">Choose Normal, High, or Critical. This dynamically adjusts signal preemption priority along your corridor.</p>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="reveal delay-300 bento-card bg-surface rounded-2xl p-6 border border-borderOutline relative overflow-hidden border-primary/30 shadow-[0_0_15px_rgba(225,29,72,0.1)]">
+          <div class="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent"></div>
+          <div class="text-6xl font-black text-primary/10 absolute -right-2 -bottom-4 pointer-events-none">4</div>
+          <div class="w-10 h-10 rounded-full bg-primary/20 border border-primary/30 text-primary flex items-center justify-center font-mono font-bold mb-6">04</div>
+          <h3 class="text-lg font-bold mb-2 text-white">Preempt Signals</h3>
+          <p class="text-sm text-textMuted leading-relaxed">ML orchestrates traffic signals ahead of you. Intersections shift from red to green automatically as you approach.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. FEATURES BENTO GRID -->
+  <section id="features" class="py-24 px-6 bg-surface2">
+    <div class="max-w-7xl mx-auto">
+      <div class="mb-16 reveal">
+        <div class="text-primary text-xs font-bold tracking-[0.12em] uppercase mb-3">Capabilities</div>
+        <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight">System architecture</h2>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 auto-rows-[200px]">
+        
+        <!-- Large Card: Preemption -->
+        <div class="reveal bento-card md:col-span-2 lg:col-span-2 md:row-span-2 bg-surface rounded-2xl p-8 border border-borderOutline flex flex-col relative overflow-hidden group">
+          <div class="absolute inset-0 bg-gradient-to-br from-bg to-surface"></div>
+          <!-- Animated Signal Visual -->
+          <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-signalRed/10 rounded-full blur-3xl group-hover:bg-signalGreen/20 transition-colors duration-1000"></div>
+          <div class="relative z-10 flex-1 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center gap-3 mb-4">
+                <div class="w-12 h-12 rounded-xl bg-surface2 border border-borderOutline flex items-center justify-center">
+                  <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                </div>
+                <span class="text-xs font-mono text-primary bg-primary/10 py-1 px-2 rounded-md">SIMULATED IN THIS VERSION</span>
+              </div>
+              <h3 class="text-2xl font-bold mb-3">Signal Preemption</h3>
+              <p class="text-textMuted leading-relaxed max-w-sm">The core capability. The app simulates communicating with municipal traffic grids to turn upcoming lights green, ensuring zero-stop emergency transit.</p>
+            </div>
+            <!-- Mock intersection UI -->
+            <div class="mt-8 bg-bg rounded-xl border border-borderOutline p-4 flex items-center justify-between">
+              <div>
+                <div class="text-xs font-mono text-textMuted mb-1">NEXT INTERSECTION</div>
+                <div class="font-bold text-lg">Main St & 4th Ave</div>
+              </div>
+              <div class="w-4 h-4 rounded-full bg-signalGreen shadow-[0_0_12px_#22C55E]"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dispatch Planning -->
+        <div class="reveal delay-100 bento-card bg-surface rounded-2xl p-6 border border-borderOutline relative overflow-hidden flex flex-col justify-between">
+          <h3 class="text-lg font-bold mb-2">Dispatch Planning</h3>
+          <p class="text-sm text-textMuted">Optimized real-time route generation based on incident location and live traffic data.</p>
+        </div>
+
+        <!-- Live Dispatch Updates -->
+        <div class="reveal delay-200 bento-card bg-surface rounded-2xl p-6 border border-borderOutline relative overflow-hidden flex flex-col justify-between">
+          <div class="absolute top-6 right-6 w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+          <h3 class="text-lg font-bold mb-2">Live Updates</h3>
+          <p class="text-sm text-textMuted">Powered by Socket.IO. New emergency requests are pushed instantly, no manual refresh needed.</p>
+        </div>
+
+        <!-- Live Response Tracking -->
+        <div class="reveal bento-card md:col-span-2 lg:col-span-2 bg-surface rounded-2xl p-6 border border-borderOutline relative overflow-hidden flex items-end">
+          <div class="absolute inset-0 opacity-20 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PHBhdGggZD0iTTAgMGg0MHY0MEgweiIgZmlsbD0ibm9uZSIvPjxwYXRoIGQ9Ik0wIDEwaDQwdjFINHoiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iLjIiLz48L3N2Zz4=')]"></div>
+          <div class="relative z-10 w-full">
+            <h3 class="text-lg font-bold mb-2">Live Response Tracking</h3>
+            <p class="text-sm text-textMuted max-w-sm mb-4">View your ETA, active route, and the real-time status of signals ahead in one streamlined view.</p>
+            <div class="w-full h-2 bg-surface2 rounded-full overflow-hidden">
+              <div class="w-2/3 h-full bg-primary rounded-full relative">
+                <div class="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full shadow-lg"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Protection -->
+        <div class="reveal delay-100 bento-card bg-surface rounded-2xl p-6 border border-borderOutline relative overflow-hidden flex flex-col justify-between">
+          <h3 class="text-lg font-bold mb-2">Server Protection</h3>
+          <p class="text-sm text-textMuted">Detects backend wipes via dataEpoch, safely signing drivers out to prevent corruption.</p>
+        </div>
+
+        <!-- Trip History -->
+        <div class="reveal delay-200 bento-card bg-surface rounded-2xl p-6 border border-borderOutline relative overflow-hidden flex flex-col justify-between">
+          <h3 class="text-lg font-bold mb-2">Trip History</h3>
+          <p class="text-sm text-textMuted">Full cryptographic logs of responses, ETAs, and completion statuses saved via SharedPreferences.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. CRITICALITY LEVEL INTERACTIVE -->
+  <section id="criticality" class="py-24 px-6 relative">
+    <div class="max-w-7xl mx-auto">
+      <div class="mb-16 reveal text-center max-w-2xl mx-auto">
+        <div class="text-primary text-xs font-bold tracking-[0.12em] uppercase mb-3">Priority</div>
+        <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight mb-4">Dynamic Response Criticality</h2>
+        <p class="text-textMuted">Not every call requires clearing the entire grid. Select your priority to manage traffic impact responsibly.</p>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-6">
+        
+        <!-- Normal -->
+        <div class="reveal bento-card bg-surface border border-borderOutline rounded-2xl p-8 hover:border-signalGreen/50 group cursor-default relative overflow-hidden">
+          <div class="absolute inset-0 bg-signalGreen/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="w-3 h-3 rounded-full bg-signalGreen mb-6 shadow-[0_0_10px_#22C55E]"></div>
+          <h3 class="text-2xl font-bold mb-2 text-white group-hover:text-signalGreen transition-colors">Normal</h3>
+          <p class="text-sm text-textMuted">Standard routing without widespread preemption. Used for non-life-threatening transport.</p>
+          <div class="mt-8 font-mono text-xs text-textMuted">PREEMPTION RADIUS: 0.5mi</div>
+        </div>
+
+        <!-- High -->
+        <div class="reveal delay-100 bento-card bg-surface border border-borderOutline rounded-2xl p-8 hover:border-signalAmber/50 group cursor-default relative overflow-hidden">
+          <div class="absolute inset-0 bg-signalAmber/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="w-3 h-3 rounded-full bg-signalAmber mb-6 shadow-[0_0_10px_#F5A623]"></div>
+          <h3 class="text-2xl font-bold mb-2 text-white group-hover:text-signalAmber transition-colors">High</h3>
+          <p class="text-sm text-textMuted">Active emergency. Signals clear incrementally as the vehicle approaches each intersection.</p>
+          <div class="mt-8 font-mono text-xs text-textMuted">PREEMPTION RADIUS: 1.5mi</div>
+        </div>
+
+        <!-- Critical -->
+        <div class="reveal delay-200 bento-card bg-surface border border-borderOutline rounded-2xl p-8 hover:border-signalRed/50 group cursor-default relative overflow-hidden">
+          <div class="absolute inset-0 bg-signalRed/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="w-3 h-3 rounded-full bg-signalRed mb-6 shadow-[0_0_15px_#EF4444] animate-pulse"></div>
+          <h3 class="text-2xl font-bold mb-2 text-white group-hover:text-signalRed transition-colors">Critical</h3>
+          <p class="text-sm text-textMuted">Absolute priority. Entire corridors are flushed and locked green for mass-casualty or severe trauma.</p>
+          <div class="mt-8 font-mono text-xs text-textMuted">PREEMPTION RADIUS: ENTIRE ROUTE</div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. APP SHOWCASE CAROUSEL -->
+  <section class="py-24 overflow-hidden bg-surface2 border-y border-borderOutline">
+    <div class="max-w-7xl mx-auto px-6 mb-12 reveal">
+      <div class="text-primary text-xs font-bold tracking-[0.12em] uppercase mb-3">Interface</div>
+      <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight">Designed for the field</h2>
+    </div>
+
+    <!-- Carousel container -->
+    <div class="flex overflow-x-auto snap-x snap-mandatory gap-6 px-6 pb-8 hide-scrollbar max-w-7xl mx-auto">
+      
+      <!-- TODO: Replace these placeholders with actual screenshots -->
+      <!-- Screen 1: Dispatch -->
+      <div class="snap-center shrink-0 w-[260px] md:w-[300px] h-[560px] md:h-[620px] bg-bg rounded-[2rem] border-[6px] border-surface flex items-center justify-center relative overflow-hidden">
+        <div class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
+          <svg class="w-10 h-10 text-textMuted mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+          <div class="font-mono text-sm text-textMuted mb-2">TODO: SCREENSHOT 1</div>
+          <div class="text-xs text-textMuted/50">Dispatch Screen</div>
+        </div>
+      </div>
+
+      <!-- Screen 2: Response -->
+      <div class="snap-center shrink-0 w-[260px] md:w-[300px] h-[560px] md:h-[620px] bg-bg rounded-[2rem] border-[6px] border-surface flex items-center justify-center relative overflow-hidden">
+        <div class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
+          <svg class="w-10 h-10 text-textMuted mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+          <div class="font-mono text-sm text-textMuted mb-2">TODO: SCREENSHOT 2</div>
+          <div class="text-xs text-textMuted/50">Response & Navigation</div>
+        </div>
+      </div>
+
+      <!-- Screen 3: History -->
+      <div class="snap-center shrink-0 w-[260px] md:w-[300px] h-[560px] md:h-[620px] bg-bg rounded-[2rem] border-[6px] border-surface flex items-center justify-center relative overflow-hidden">
+        <div class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
+          <svg class="w-10 h-10 text-textMuted mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+          <div class="font-mono text-sm text-textMuted mb-2">TODO: SCREENSHOT 3</div>
+          <div class="text-xs text-textMuted/50">Trip History Log</div>
+        </div>
+      </div>
+
+      <!-- Screen 4: Profile -->
+      <div class="snap-center shrink-0 w-[260px] md:w-[300px] h-[560px] md:h-[620px] bg-bg rounded-[2rem] border-[6px] border-surface flex items-center justify-center relative overflow-hidden">
+        <div class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
+          <svg class="w-10 h-10 text-textMuted mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+          <div class="font-mono text-sm text-textMuted mb-2">TODO: SCREENSHOT 4</div>
+          <div class="text-xs text-textMuted/50">Driver Profile</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 8 & 9. TECH STACK + DOWNLOAD CTA -->
+  <section id="tech" class="py-24 px-6">
+    <div class="max-w-4xl mx-auto text-center reveal">
+      <div class="text-primary text-xs font-bold tracking-[0.12em] uppercase mb-8">Technology Stack</div>
+      
+      <!-- Tech Chips -->
+      <div class="flex flex-wrap justify-center gap-3 mb-20">
+        <span class="px-4 py-2 rounded-full bg-surface border border-borderOutline text-sm font-medium text-textMain">Flutter 3.27</span>
+        <span class="px-4 py-2 rounded-full bg-surface border border-borderOutline text-sm font-medium text-textMain">Dart 3.6</span>
+        <span class="px-4 py-2 rounded-full bg-surface border border-borderOutline text-sm font-medium text-textMain">Provider State Mgmt</span>
+        <span class="px-4 py-2 rounded-full bg-surface border border-borderOutline text-sm font-medium text-textMain">Socket.IO</span>
+        <span class="px-4 py-2 rounded-full bg-surface border border-borderOutline text-sm font-medium text-textMain">Supabase DB</span>
+        <span class="px-4 py-2 rounded-full bg-surface border border-borderOutline text-sm font-medium text-textMain">SharedPreferences</span>
+        <span class="px-4 py-2 rounded-full bg-surface border border-borderOutline text-sm font-medium text-textMain">Google Fonts</span>
+      </div>
+
+      <!-- Massive Download CTA Panel -->
+      <div class="bg-gradient-to-br from-primaryDeep to-primary rounded-3xl p-8 md:p-16 relative overflow-hidden shadow-[0_20px_50px_rgba(225,29,72,0.3)] border border-white/10 text-left md:text-center">
+        <!-- Shine overlay -->
+        <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-tr from-white/0 via-white/5 to-white/0 pointer-events-none"></div>
+        
+        <h2 class="text-4xl md:text-5xl font-extrabold text-white mb-4 relative z-10">Get Signal Aid v3.0.0</h2>
+        <p class="text-white/80 text-lg mb-10 max-w-xl mx-auto relative z-10">
+          Ready to deploy. Equip your fleet with the simulated preemption toolkit today.
+        </p>
+
+        <div class="flex flex-col md:flex-row items-center justify-center gap-4 relative z-10">
+          <a href="https://github.com/NavDevs/Signal-Aid/releases/download/v3.0.0/Signal-Aid-v3.0.0.apk" class="w-full md:w-auto bg-white text-primary font-bold py-4 px-8 rounded-xl shadow-lg hover:bg-gray-50 transition-colors flex items-center justify-center gap-3 text-lg">
+            Download APK
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+          </a>
+          <a href="https://github.com/NavDevs/Signal-Aid" target="_blank" rel="noopener" class="w-full md:w-auto bg-black/20 hover:bg-black/40 border border-white/20 text-white font-semibold py-4 px-8 rounded-xl transition-colors flex items-center justify-center gap-3 text-lg">
+            Source Code
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"></path></svg>
+          </a>
+        </div>
+        <div class="mt-6 text-white/50 text-sm font-mono relative z-10 flex flex-col md:flex-row justify-center gap-2 md:gap-4 text-center">
+          <span>Android 5.0+</span>
+          <span class="hidden md:inline">•</span>
+          <span>~50.3 MB</span>
+          <span class="hidden md:inline">•</span>
+          <span>Version 3.0.0</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10. FOOTER -->
+  <footer class="bg-bg border-t border-borderOutline py-12 px-6">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center md:items-start gap-8">
+      
+      <div class="flex flex-col items-center md:items-start">
+        <a href="#" class="flex items-center gap-2 group mb-4" aria-label="Signal Aid Home">
+          <div class="w-6 h-6 rounded bg-gradient-to-b from-primary to-primaryDeep flex items-center justify-center">
+            <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+          </div>
+          <span class="font-bold tracking-tight text-white group-hover:text-primary transition-colors">Signal Aid</span>
+        </a>
+        <p class="text-sm text-textMuted text-center md:text-left">
+          Made with ❤️ for emergency responders.<br>
+          <span class="text-xs opacity-70 mt-1 block">Note: Signal preemption is simulated in this version.</span>
+        </p>
+      </div>
+
+      <div class="flex items-center gap-6 text-sm font-medium text-textMuted">
+        <a href="https://github.com/NavDevs/Signal-Aid" class="hover:text-white transition-colors">GitHub Repository</a>
+        <span class="w-1 h-1 rounded-full bg-borderOutline"></span>
+        <span>MIT License</span>
+        <span class="w-1 h-1 rounded-full bg-borderOutline"></span>
+        <span>&copy; 2026 NavDevs</span>
+      </div>
+
+    </div>
+  </footer>
+
+  <!-- Simple Intersection Observer script for reveal animations -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const reveals = document.querySelectorAll(".reveal");
+      
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("active");
+            // Optional: stop observing once revealed
+            // observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.1 });
+
+      reveals.forEach((el) => observer.observe(el));
+
+      // Quick logic to simulate traffic light color change on scroll
+      const trafficLightBg = document.getElementById('traffic-light-bg');
+      if(trafficLightBg) {
+        window.addEventListener('scroll', () => {
+          const scrollPct = window.scrollY / (document.body.scrollHeight - window.innerHeight);
+          if (scrollPct < 0.33) {
+            trafficLightBg.classList.remove('bg-signalAmber', 'bg-signalGreen');
+            trafficLightBg.classList.add('bg-signalRed');
+          } else if (scrollPct < 0.66) {
+            trafficLightBg.classList.remove('bg-signalRed', 'bg-signalGreen');
+            trafficLightBg.classList.add('bg-signalAmber');
+          } else {
+            trafficLightBg.classList.remove('bg-signalRed', 'bg-signalAmber');
+            trafficLightBg.classList.add('bg-signalGreen');
+          }
+        });
+      }
+    });
+  </script>
 </body>
 </html>
